@@ -1,0 +1,65 @@
+﻿@model SweetCakeShop.Models.ViewModels.CartViewModel
+
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+<div class="container my-5">
+    <h2 class="text-center mb-4">Giỏ hàng của bạn</h2>
+
+    @if (Model.Items.Any())
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Hình ảnh</th>
+                    <th>Sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td><img src="@item.Image" alt="@item.ProductName" style="width:80px;" /></td>
+                        <td>@item.ProductName</td>
+                        <td>@item.Price.ToString("N0") ₫</td>
+                        <td>
+                            <form asp-action="Update" method="post" class="d-inline">
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control d-inline w-50" />
+                                <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
+                            </form>
+                        </td>
+                        <td>@item.Subtotal.ToString("N0") ₫</td>
+                        <td>
+                            <form asp-action="Remove" method="post" class="d-inline">
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="text-end fw-bold">Tổng cộng:</td>
+                    <td colspan="2" class="fw-bold">@Model.TotalAmount.ToString("N0") ₫</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="text-end mt-4">
+            <a asp-controller="Cart" asp-action="Checkout" class="btn btn-success btn-lg">Tiến hành đặt hàng</a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            Giỏ hàng của bạn đang trống. <a asp-controller="Home" asp-action="Index">Tiếp tục mua sắm</a>
+        </div>
+    }
+</div>

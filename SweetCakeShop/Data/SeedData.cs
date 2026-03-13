@@ -172,7 +172,7 @@ namespace SweetCakeShop.Data
             context.Products.AddRange(products);
             context.SaveChanges();
 
-            Console.WriteLine($"Đã thêm {products.Length} products.");
+            //Console.WriteLine($"Đã thêm {products.Length} products.");
             Console.WriteLine("Seed dữ liệu hoàn tất!");
         }
     }

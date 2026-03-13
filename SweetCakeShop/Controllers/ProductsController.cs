@@ -30,7 +30,13 @@ namespace SweetCakeShop.Controllers
                 _ => products.OrderBy(p => p.ProductId) // Mặc định
             };
 
-            return View(await products.ToListAsync());
+            return View("IndexPro", await products.ToListAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> IndexPro(string sortOrder)
+        {
+            return await Index(sortOrder);
         }
 
         public async Task<IActionResult> Details(int id)

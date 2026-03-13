@@ -1,14 +1,34 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SweetCakeShop.Data;
 using SweetCakeShop.Models;
+using SweetCakeShop.Models.ViewModels;
 using System.Diagnostics;
 
 namespace SweetCakeShop.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly ApplicationDbContext _context;
+
+        public HomeController(ApplicationDbContext context)
         {
-            return View();
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var featuredProducts = await _context.Products
+                .OrderBy(p => p.ProductId)
+                .Take(5)
+                .ToListAsync();
+
+            var model = new HomeViewModel
+            {
+                FeaturedProducts = featuredProducts
+            };
+
+            return View(model);
         }
 
         public IActionResult Privacy()

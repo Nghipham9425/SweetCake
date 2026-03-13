@@ -1,0 +1,122 @@
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container-fluid px-lg-5 mt-4">
+    <div id="bannerCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000" style="max-height: 400px;">
+
+        <div class="carousel-inner rounded">
+
+            <div class="carousel-item active">
+                <img src="~/images/banner1.png" class="d-block w-100 rounded" style="max-height: 400px; width: 100%; object-fit: contain;" />
+            </div>
+
+            <div class="carousel-item">
+                <img src="~/images/banner2.png" class="d-block w-100 rounded" style="max-height: 400px; width: 100%; object-fit: contain;" />
+            </div>
+
+            <div class="carousel-item">
+                <img src="~/images/banner3.png" class="d-block w-100 rounded" style="max-height: 400px; width: 100%; object-fit: contain;" />
+            </div>
+
+        </div>
+
+        <button class="carousel-control-prev"
+                type="button"
+                data-bs-target="#bannerCarousel"
+                data-bs-slide="prev">
+
+            <span class="carousel-control-prev-icon"></span>
+
+        </button>
+
+        <button class="carousel-control-next"
+                type="button"
+                data-bs-target="#bannerCarousel"
+                data-bs-slide="next">
+
+            <span class="carousel-control-next-icon"></span>
+
+        </button>
+
+    </div>
+</div>
+
+<div class="container-fluid px-lg-5 mt-5">
+    <h3 class="mb-4 fw-bold">Danh mục sản phẩm</h3>
+
+    <div class="row g-3">
+
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
+                <img src="~/images/cate_1.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
+                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
+                    <h5 class="text-white fw-bold text-center px-2">Bánh kem</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
+                <img src="~/images/cate_2.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
+                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
+                    <h5 class="text-white fw-bold text-center px-2">Bánh bông lan</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
+                <img src="~/images/cate_3.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
+                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
+                    <h5 class="text-white fw-bold text-center px-2">Bánh quy</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
+                <img src="~/images/cate_4.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
+                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
+                    <h5 class="text-white fw-bold text-center px-2">Bánh mì</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
+                <img src="~/images/cate_5.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
+                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
+                    <h5 class="text-white fw-bold text-center px-2">Bánh mousse</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
+                <img src="~/images/cate_6.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
+                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
+                    <h5 class="text-white fw-bold text-center px-2">Tiramisu</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .category-card {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+    .category-card:hover {
+        transform: translateY(-5px);
+    }
+    .category-overlay {
+        background: rgba(0, 0, 0, 0.4);
+        transition: background 0.3s ease;
+    }
+    .category-card:hover .category-overlay {
+        background: rgba(0, 0, 0, 0.6);
+    }
+</style>

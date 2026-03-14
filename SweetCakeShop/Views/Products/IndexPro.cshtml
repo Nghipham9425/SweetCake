@@ -1,8 +1,11 @@
-    @model IEnumerable<SweetCakeShop.Models.Product>
-
+    @using X.PagedList.Mvc.Core
+    @using X.PagedList
+    @model IPagedList<SweetCakeShop.Models.Product>
+    
     @{
         ViewData["Title"] = "Tất cả sản phẩm";
         var currentSort = ViewData["CurrentSort"] as string;
+        var currentSearch = ViewData["CurrentSearch"] as string;
     }
 
     <div class="container-fluid px-lg-5 mt-4">
@@ -14,6 +17,7 @@
             </div>
             <div class="col-md-6 text-end">
                 <form method="get" class="d-inline-flex align-items-center">
+                    <input type="hidden" name="searchTerm" value="@currentSearch" />
                     <label class="me-2 text-muted">Sắp xếp theo:</label>
                     <select name="sortOrder" class="form-select" style="width: auto;" onchange="this.form.submit()">
                         <option value="" selected="@(string.IsNullOrEmpty(currentSort))">Mặc định</option>
@@ -76,6 +80,16 @@
                 </div>
             }
         </div>
+    <div class="d-flex justify-content-center mt-4 pagination-custom">
+        @Html.PagedListPager(
+            Model,
+            page => Url.Action("IndexPro", new { page, sortOrder = currentSort, searchTerm = currentSearch }),
+            new PagedListRenderOptions
+            {
+                LiElementClasses = new[] { "page-item" },
+                PageClasses = new[] { "page-link" }
+            })
+    </div>
 
         <!-- Thông báo nếu không có sản phẩm -->
         @if (!Model.Any())
@@ -101,6 +115,46 @@
             font-size: 1rem;
             font-weight: 500;
             min-height: 2.5rem;
+        }
+
+        //chuyển trang
+        .pagination-custom ul {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            gap: 6px;
+        }
+
+        .pagination-custom .page-item {
+            border-radius: 8px;
+        }
+
+        .pagination-custom .page-link {
+            color: #d63384;
+            border: 1px solid #ddd;
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .pagination-custom .page-link:hover {
+            background: #ffb6d5;
+            color: white;
+            border-color: #ffb6d5;
+        }
+
+        .pagination-custom .active .page-link {
+        background: #ff8ec7;
+            color: white;
+        border-color: #ff8ec7;
+            font-weight: 600;
+        }
+
+        .pagination-custom .disabled .page-link {
+            color: #aaa;
+            pointer-events: none;
+        background: #ffe4ef;
         }
     </style>
 

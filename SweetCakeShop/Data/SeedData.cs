@@ -69,6 +69,22 @@ namespace SweetCakeShop.Data
                     Image = "/images/sp3.jpg",
                     CategoryId = categories[0].CategoryId
                 },
+                new Product
+                {
+                    ProductName = "Bánh kem việt quất",
+                    Price = 400000,
+                    Description = "Bánh kem việt quất đỉnh và ngon điên",
+                    Image = "/images/sp15.jpg",
+                    CategoryId = categories[0].CategoryId
+                },
+                new Product
+                {
+                    ProductName = "Bánh kem thần tiên",
+                    Price = 300000,
+                    Description = "Bánh kem ăn vô như lạc vào chốn bồng lai",
+                    Image = "/images/sp16.jpg",
+                    CategoryId = categories[0].CategoryId
+                },
 
                 // Bánh bông lan
                 new Product
@@ -113,6 +129,14 @@ namespace SweetCakeShop.Data
                     Image = "/images/sp8.jpg",
                     CategoryId = categories[2].CategoryId
                 },
+                new Product
+                {
+                    ProductName = "Bánh quy socola bảy màu",
+                    Price = 100000,
+                    Description = "Bánh quy với socola với nhiều màu sắc cao cấp",
+                    Image = "/images/sp18.jpg",
+                    CategoryId = categories[2].CategoryId
+                },
 
                 // Bánh mì
                 new Product
@@ -129,6 +153,14 @@ namespace SweetCakeShop.Data
                     Price = 30000,
                     Description = "Bánh mì sandwich mềm mịn",
                     Image = "/images/sp10.jpg",
+                    CategoryId = categories[3].CategoryId
+                },
+                new Product
+                {
+                    ProductName = "Bánh mì bơ tỏi",
+                    Price = 35000,
+                    Description = "Bánh mì bơ tỏi thơm phức giòn rụm",
+                    Image = "/images/sp20.jpg",
                     CategoryId = categories[3].CategoryId
                 },
 
@@ -149,6 +181,14 @@ namespace SweetCakeShop.Data
                     Image = "/images/sp12.jpg",
                     CategoryId = categories[4].CategoryId
                 },
+                new Product
+                {
+                    ProductName = "Mousse xoài",
+                    Price = 200000,
+                    Description = "Mousse xoài tươi mát chua chua ngọt ngọt phù hợp cho mùa hè",
+                    Image = "/images/sp19.jpg",
+                    CategoryId = categories[4].CategoryId
+                },
 
                 // Tiramisu
                 new Product
@@ -157,6 +197,14 @@ namespace SweetCakeShop.Data
                     Price = 250000,
                     Description = "Tiramisu Ý truyền thống",
                     Image = "/images/sp13.jpg",
+                    CategoryId = categories[5].CategoryId
+                },
+                new Product
+                {
+                    ProductName = "Tiramisu Mango",
+                    Price = 260000,
+                    Description = "Tiramisu xoài tạo nên mùi vị chua ngọt thoải mái",
+                    Image = "/images/sp17.jpg",
                     CategoryId = categories[5].CategoryId
                 },
                 new Product

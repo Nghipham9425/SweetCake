@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SweetCakeShop.Data;
 using SweetCakeShop.Models;
+using X.PagedList;
+using X.PagedList.Extensions;
 
 namespace SweetCakeShop.Controllers
 {
@@ -15,12 +17,20 @@ namespace SweetCakeShop.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index(string sortOrder)
+        public IActionResult Index(string? sortOrder, string? searchTerm, int? page)
         {
             ViewData["CurrentSort"] = sortOrder;
+            ViewData["CurrentSearch"] = searchTerm;
 
             var products = from p in _context.Products.Include(p => p.Category)
                            select p;
+
+            //tìm kiếm theo tên sản phẩm
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var keyword = searchTerm.Trim();
+                products = products.Where(p => p.ProductName.Contains(keyword));
+            }
 
             // Sắp xếp theo giá
             products = sortOrder switch
@@ -30,13 +40,18 @@ namespace SweetCakeShop.Controllers
                 _ => products.OrderBy(p => p.ProductId) // Mặc định
             };
 
-            return View("IndexPro", await products.ToListAsync());
+            int pageSize = 12;
+            int pageNumber = page ?? 1;
+            var pagedProducts = products.ToPagedList(pageNumber, pageSize);
+
+
+            return View("IndexPro", pagedProducts);
         }
 
         [HttpGet]
-        public async Task<IActionResult> IndexPro(string sortOrder)
+        public IActionResult IndexPro(string? sortOrder, string? searchTerm, int? page)
         {
-            return await Index(sortOrder);
+            return Index(sortOrder, searchTerm, page);
         }
 
         public async Task<IActionResult> Details(int id)
@@ -52,5 +67,6 @@ namespace SweetCakeShop.Controllers
 
             return View(product);
         }
+
     }
 }

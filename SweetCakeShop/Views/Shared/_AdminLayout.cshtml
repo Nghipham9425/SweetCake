@@ -20,7 +20,7 @@
                                asp-controller="Home" asp-action="Index">
                             Trang chủ
                         </a>
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active fw-semibold" : "text-dark")"
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active fw-semibold" : "text-dark")"
                            asp-controller="Admin" asp-action="Dashboard">
                             Xem Orders
                         </a>
@@ -28,9 +28,13 @@
                            asp-controller="Admin" asp-action="Categories">
                             Danh mục
                         </a>
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active fw-semibold" : "text-dark")"
-                               asp-controller="Admin" asp-action="Dashboard">
-                            Xem tồn kho sản xuất bánh
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Ingredients" ? "active fw-semibold" : "text-dark")"
+                               asp-controller="Admin" asp-action="Ingredients">
+                            Xem Nguyên liệu tồn kho
+                        </a>
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Products" ? "active fw-semibold" : "text-dark")"
+                           asp-controller="Admin" asp-action="Products">
+                            Xem số lượng bánh có thể làm
                         </a>
                         <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active fw-semibold" : "text-dark")"
                                asp-controller="Admin" asp-action="Dashboard">

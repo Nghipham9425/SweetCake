@@ -368,6 +368,10 @@ namespace SweetCakeShop.Data.Migrations
                     b.Property<int>("ProductID")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
                     b.HasKey("RecipeID");
 
                     b.HasIndex("IngredientsID");

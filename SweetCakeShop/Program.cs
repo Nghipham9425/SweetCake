@@ -39,9 +39,7 @@ namespace SweetCakeShop
                 {
                     var logger = services.GetRequiredService<ILogger<Program>>();
                     logger.LogError(ex, "LỖI KHI SEED DỮ LIỆU: {Message}", ex.Message);
-                    Console.WriteLine($"LỖI: {ex.Message}");
-                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                    // Không ném lỗi ra ngoài để app vẫn chạy được
+                    throw;
                 }
 
             }

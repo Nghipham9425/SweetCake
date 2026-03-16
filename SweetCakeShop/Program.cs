@@ -17,7 +17,9 @@ namespace SweetCakeShop
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
@@ -30,6 +32,7 @@ namespace SweetCakeShop
                 {
                     Console.WriteLine("Đang khởi tạo seed data...");
                     SeedData.Initialize(services);
+                    IdentitySeed.SeedAdminAsync(services).GetAwaiter().GetResult();
                     Console.WriteLine("Seed data hoàn tất!");
                 }
                 catch (Exception ex)
@@ -40,6 +43,7 @@ namespace SweetCakeShop
                     Console.WriteLine($"Stack trace: {ex.StackTrace}");
                     // Không ném lỗi ra ngoài để app vẫn chạy được
                 }
+
             }
 
             // Configure the HTTP request pipeline.
@@ -50,13 +54,13 @@ namespace SweetCakeShop
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapStaticAssets();
@@ -64,8 +68,7 @@ namespace SweetCakeShop
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
-            app.MapRazorPages()
-               .WithStaticAssets();
+            app.MapRazorPages().WithStaticAssets();
 
             app.Run();
         }

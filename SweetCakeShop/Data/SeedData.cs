@@ -9,23 +9,10 @@ namespace SweetCakeShop.Data
         {
             using var context = new ApplicationDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
-
-            // Đảm bảo database đã được tạo
             context.Database.EnsureCreated();
-
-            // XÓA DỮ LIỆU CŨ MỘT LẦN ĐỂ CẬP NHẬT ĐƯỜNG DẪN ẢNH
-            if (context.Products.Any())
-            {
-                Console.WriteLine("Đang xóa dữ liệu cũ...");
-                context.Products.RemoveRange(context.Products);
-                context.Categories.RemoveRange(context.Categories);
-                context.SaveChanges();
-                Console.WriteLine("Đã xóa dữ liệu cũ.");
-            }
 
             Console.WriteLine("Bắt đầu seed dữ liệu mới...");
 
-            // Seed Categories
             var categories = new Category[]
             {
                 new Category { CategoryName = "Bánh kem" },
@@ -36,14 +23,18 @@ namespace SweetCakeShop.Data
                 new Category { CategoryName = "Tiramisu" }
             };
 
-            context.Categories.AddRange(categories);
-            context.SaveChanges();
-
-            Console.WriteLine($"Đã thêm {categories.Length} categories.");
-
-            // Seed Products
-            var products = new Product[]
+            if (!context.Categories.Any())
             {
+                context.Categories.AddRange(categories);
+                context.SaveChanges();
+            }
+            else
+            {
+                categories = context.Categories.ToArray();
+            }
+
+            var products = new Product[]
+{
                 // Bánh kem
                 new Product
                 {
@@ -136,10 +127,7 @@ namespace SweetCakeShop.Data
                     Description = "Bánh quy với socola với nhiều màu sắc cao cấp",
                     Image = "/images/sp18.jpg",
                     CategoryId = categories[2].CategoryId
-                },
-
-                // Bánh mì
-                new Product
+                },new Product
                 {
                     ProductName = "Bánh mì baguette",
                     Price = 25000,
@@ -162,10 +150,7 @@ namespace SweetCakeShop.Data
                     Description = "Bánh mì bơ tỏi thơm phức giòn rụm",
                     Image = "/images/sp20.jpg",
                     CategoryId = categories[3].CategoryId
-                },
-
-                // Bánh mousse
-                new Product
+                },new Product
                 {
                     ProductName = "Mousse socola",
                     Price = 180000,
@@ -188,10 +173,7 @@ namespace SweetCakeShop.Data
                     Description = "Mousse xoài tươi mát chua chua ngọt ngọt phù hợp cho mùa hè",
                     Image = "/images/sp19.jpg",
                     CategoryId = categories[4].CategoryId
-                },
-
-                // Tiramisu
-                new Product
+                },new Product
                 {
                     ProductName = "Tiramisu truyền thống",
                     Price = 250000,
@@ -217,10 +199,72 @@ namespace SweetCakeShop.Data
                 }
             };
 
-            context.Products.AddRange(products);
-            context.SaveChanges();
+            if (!context.Products.Any())
+            {
+                context.Products.AddRange(products);
+                context.SaveChanges();
+            }
+            else
+            {
+                products = context.Products.ToArray();
+            }
 
-            //Console.WriteLine($"Đã thêm {products.Length} products.");
+            var ingredients = new Ingredient[]
+            {
+                new Ingredient { Name = "Bột mì", Quantity = 50000, Measurement = "gram" },
+                new Ingredient { Name = "Trứng gà", Quantity = 1000, Measurement = "quả" },
+                new Ingredient { Name = "Đường", Quantity = 30000, Measurement = "gram" },
+                new Ingredient { Name = "Sữa tươi", Quantity = 20000, Measurement = "ml" },
+                new Ingredient { Name = "Bơ lạt", Quantity = 15000, Measurement = "gram" },
+                new Ingredient { Name = "Kem tươi", Quantity = 12000, Measurement = "ml" },
+                new Ingredient { Name = "Socola", Quantity = 10000, Measurement = "gram" },
+                new Ingredient { Name = "Dâu tây", Quantity = 8000, Measurement = "gram" },
+                new Ingredient { Name = "Phô mai", Quantity = 7000, Measurement = "gram" },
+                new Ingredient { Name = "Bột matcha", Quantity = 2000, Measurement = "gram" }
+            };
+
+            if (!context.Ingredients.Any())
+            {
+                context.Ingredients.AddRange(ingredients);
+                context.SaveChanges();
+            }
+            else
+            {
+                ingredients = context.Ingredients.ToArray();
+            }
+
+            if (!context.Recipes.Any())
+            {
+                int ProductId(string name) => products.First(p => p.ProductName == name).ProductId;
+                int IngredientId(string name) => ingredients.First(i => i.Name == name).IngredientID;
+
+                var recipes = new Recipe[]
+                {
+                    // Bánh kem dâu tây
+                    new Recipe { ProductID = ProductId("Bánh kem dâu tây"), IngredientsID = IngredientId("Bột mì"), Quantity = 300 },
+                    new Recipe { ProductID = ProductId("Bánh kem dâu tây"), IngredientsID = IngredientId("Trứng gà"), Quantity = 6 },
+                    new Recipe { ProductID = ProductId("Bánh kem dâu tây"), IngredientsID = IngredientId("Đường"), Quantity = 120 },
+                    new Recipe { ProductID = ProductId("Bánh kem dâu tây"), IngredientsID = IngredientId("Kem tươi"), Quantity = 250 },
+                    new Recipe { ProductID = ProductId("Bánh kem dâu tây"), IngredientsID = IngredientId("Dâu tây"), Quantity = 200 },
+
+                    // Bánh kem socola
+                    new Recipe { ProductID = ProductId("Bánh kem socola"), IngredientsID = IngredientId("Bột mì"), Quantity = 320 },
+                    new Recipe { ProductID = ProductId("Bánh kem socola"), IngredientsID = IngredientId("Trứng gà"), Quantity = 6 },
+                    new Recipe { ProductID = ProductId("Bánh kem socola"), IngredientsID = IngredientId("Đường"), Quantity = 130 },
+                    new Recipe { ProductID = ProductId("Bánh kem socola"), IngredientsID = IngredientId("Socola"), Quantity = 180 },
+                    new Recipe { ProductID = ProductId("Bánh kem socola"), IngredientsID = IngredientId("Kem tươi"), Quantity = 220 },
+
+                    // Tiramisu matcha
+                    new Recipe { ProductID = ProductId("Tiramisu matcha"), IngredientsID = IngredientId("Phô mai"), Quantity = 250 },
+                    new Recipe { ProductID = ProductId("Tiramisu matcha"), IngredientsID = IngredientId("Kem tươi"), Quantity = 180 },
+                    new Recipe { ProductID = ProductId("Tiramisu matcha"), IngredientsID = IngredientId("Đường"), Quantity = 90 },
+                    new Recipe { ProductID = ProductId("Tiramisu matcha"), IngredientsID = IngredientId("Bột matcha"), Quantity = 25 }
+                };
+
+                context.Recipes.AddRange(recipes);
+                context.SaveChanges();
+            }
+
             Console.WriteLine("Seed dữ liệu hoàn tất!");
         }
     }

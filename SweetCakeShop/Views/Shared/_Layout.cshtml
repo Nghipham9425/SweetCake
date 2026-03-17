@@ -63,6 +63,12 @@
                         <li class="nav-item">
                             <a class="nav-link px-3 fw-normal" asp-area="" asp-controller="Home" asp-action="Contact">Liên hệ</a>
                         </li>
+                        @if (User.IsInRole(SweetCakeShop.Constants.Roles.Admin.ToString()))
+                            {
+                            <li class="nav-item">
+                                <a class="nav-link px-3 fw-normal" asp-area="" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
+                            </li>
+                        }
                     </ul>
 
                     <!-- Thanh tìm kiếm bo tròn -->

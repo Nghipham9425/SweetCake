@@ -6,6 +6,8 @@
         ViewData["Title"] = "Tất cả sản phẩm";
         var currentSort = ViewData["CurrentSort"] as string;
         var currentSearch = ViewData["CurrentSearch"] as string;
+        var currentCategoryId = ViewData["CurrentCategoryId"] is int categoryId ? categoryId : (int?)null;
+        var currentCategoryName = ViewData["CurrentCategoryName"] as string;
     }
 
     <div class="container-fluid px-lg-5 mt-4">
@@ -18,6 +20,8 @@
             <div class="col-md-6 text-end">
                 <form method="get" class="d-inline-flex align-items-center">
                     <input type="hidden" name="searchTerm" value="@currentSearch" />
+                    <input type="hidden" name="categoryId" value="@currentCategoryId" />
+                    <input type="hidden" name="categoryName" value="@currentCategoryName" />
                     <label class="me-2 text-muted">Sắp xếp theo:</label>
                     <select name="sortOrder" class="form-select" style="width: auto;" onchange="this.form.submit()">
                         <option value="" selected="@(string.IsNullOrEmpty(currentSort))">Mặc định</option>
@@ -83,7 +87,7 @@
     <div class="d-flex justify-content-center mt-4 pagination-custom">
         @Html.PagedListPager(
             Model,
-            page => Url.Action("IndexPro", new { page, sortOrder = currentSort, searchTerm = currentSearch }),
+            page => Url.Action("IndexPro", new { page, sortOrder = currentSort, searchTerm = currentSearch, categoryId = currentCategoryId, categoryName = currentCategoryName }),
             new PagedListRenderOptions
             {
                 LiElementClasses = new[] { "page-item" },

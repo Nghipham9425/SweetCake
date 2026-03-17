@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SweetCakeShop.Data;
+using SweetCakeShop.Services; // <- added
 
 namespace SweetCakeShop
 {
@@ -21,6 +22,17 @@ namespace SweetCakeShop
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
+
+            // Session and cart registration
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromHours(2);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+            builder.Services.AddScoped<CartService>();
+            builder.Services.AddScoped<OrderService>();
 
             var app = builder.Build();
 
@@ -56,7 +68,9 @@ namespace SweetCakeShop
             }
 
             app.UseHttpsRedirection();
-            app.UseRouting();
+            app.UseRouting();               
+
+            app.UseSession(); // <- enable session
 
             app.UseAuthentication();
             app.UseAuthorization();

@@ -2,10 +2,11 @@
 {
     public class CheckoutViewModel
     {
-        public CartViewModel Cart { get; set; } = new();
-        public string? FullName { get; set; }       // optional: thêm nếu muốn thu thập thông tin giao hàng
-        public string? Address { get; set; }
-        public string? Phone { get; set; }
-        public string? Note { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerEmail { get; set; } = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;
+        public string ShippingAddress { get; set; } = string.Empty;
+
+        // Optional: you can add shipping method, notes, payment method etc.
     }
 }

@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using SweetCakeShop.Services
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -87,18 +89,15 @@
 
                     <!-- Giỏ hàng -->
                     <a class="position-relative me-3 text-decoration-none text-dark d-flex align-items-center"
-                           asp-area="" asp-controller="Cart" asp-action="Index">
+                       asp-area="" asp-controller="Cart" asp-action="Index">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
                         </svg>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-pink">
-                            0
-                        </span>
+
+                        @await Component.InvokeAsync("CartBadge")
                     </a>
 
                     <!-- Nút đăng nhập -->
-                    @*   <a class="btn btn-pink rounded-pill px-4 py-2 fw-normal"
-                       asp-area="" asp-controller="Account" asp-action="Login">Đăng nhập</a> *@
                     <partial name="_LoginPartial" />
 
                 </div>
@@ -173,6 +172,46 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
+    @await Html.PartialAsync("_Toast")
+
+    <script>
+        // small client helpers to handle add-to-cart and update badge
+        function updateCartBadge() {
+            fetch('/Cart/Count')
+                .then(r => r.json())
+                .then(j => {
+                    const b = document.querySelector('.cart-badge-count');
+                    if (b) b.textContent = j.count;
+                });
+        }
+
+        function addToCartAjax(productId, quantity = 1) {
+            const body = new URLSearchParams();
+            body.append('id', productId);
+            body.append('quantity', quantity);
+
+            fetch('/Cart/Add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data?.success) {
+                    showToast(data.message, 'success');
+                    updateCartBadge();
+                } else {
+                    showToast('Không thể thêm vào giỏ hàng.', 'danger');
+                }
+            })
+            .catch(() => showToast('Lỗi thêm vào giỏ hàng.', 'danger'));
+        }
+
+        // Update badge at page load
+        document.addEventListener('DOMContentLoaded', () => updateCartBadge());
+    </script>
+
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

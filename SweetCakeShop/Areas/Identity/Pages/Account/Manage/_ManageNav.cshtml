@@ -2,14 +2,51 @@
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
+
 <ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
+    <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext) pink-nav" id="profile" asp-page="./Index">Hồ sơ cá nhân</a>
+    </li>
+    <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.EmailNavClass(ViewContext) pink-nav" id="email" asp-page="./Email">Địa chỉ Email</a>
+    </li>
+    <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext) pink-nav" id="change-password" asp-page="./ChangePassword">Mật khẩu</a>
+    </li>
     @if (hasExternalLogins)
     {
-        <li id="external-logins" class="nav-item"><a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">External logins</a></li>
+        <li id="external-logins" class="nav-item mb-2">
+            <a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext) pink-nav" asp-page="./ExternalLogins">Liên kết ngoài</a>
+        </li>
     }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
+  @*   <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext) pink-nav" id="two-factor" asp-page="./TwoFactorAuthentication">Xác thực 2 lớp</a>
+    </li>
+    <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext) pink-nav" id="personal-data" asp-page="./PersonalData">Dữ liệu cá nhân</a>
+    </li> *@
 </ul>
+
+<style>
+    /* Màu chữ và bo góc mặc định cho các nút */
+    .pink-nav {
+        color: #d81b60 !important; /* Chữ màu hồng đậm */
+        border-radius: 12px !important;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        padding: 10px 15px;
+    }
+
+        /* Khi nút đang được chọn (Active) */
+        .pink-nav.active {
+            background-color: #d81b60 !important; /* Nền hồng đậm */
+            color: white !important; /* Chữ trắng */
+            box-shadow: 0 4px 10px rgba(216, 27, 96, 0.2);
+        }
+
+        /* Hiệu ứng khi di chuột vào nút chưa chọn */
+        .pink-nav:hover:not(.active) {
+            background-color: #fce4ec !important; /* Nền hồng rất nhạt */
+            color: #ad1457 !important; /* Chữ hồng đậm hơn */
+        }
+</style>

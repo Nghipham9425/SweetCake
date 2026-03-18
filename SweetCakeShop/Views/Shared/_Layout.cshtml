@@ -1,3 +1,5 @@
+﻿@using SweetCakeShop.Services
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,26 +11,30 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SweetCakeShop.styles.css" asp-append-version="true" />
     <style>
-        body {
-            background-color: #ffffff !important;
-            margin: 0;
-            padding: 0;
-        }
-        html, body {
-            height: 100%;
-        }
-        .btn-pink {
-            background-color: #ff69b4 !important;
-            color: white !important;
-            border: none !important;
-        }
-        .btn-pink:hover {
-            background-color: #ff1493 !important;
-            color: white !important;
-        }
-        .bg-pink {
-            background-color: #ff69b4 !important;
-        }
+            body {
+                background-color: #ffffff !important;
+                margin: 0;
+                padding: 0;
+            }
+
+            html, body {
+                height: 100%;
+            }
+
+            .btn-pink {
+                background-color: #ff69b4 !important;
+                color: white !important;
+                border: none !important;
+            }
+
+                .btn-pink:hover {
+                    background-color: #ff1493 !important;
+                    color: white !important;
+                }
+
+            .bg-pink {
+                background-color: #ff69b4 !important;
+            }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -54,42 +60,45 @@
                             <a class="nav-link px-3 fw-normal" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link px-3 fw-normal" asp-area="" asp-controller="Products" asp-action="Index">Sản phẩm</a>
+                            <a class="nav-link px-3 fw-normal" asp-area="" asp-controller="Products" asp-action="IndexPro">Sản phẩm</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link px-3 fw-normal" asp-area="" asp-controller="Home" asp-action="Contact">Liên hệ</a>
                         </li>
+                        @if (User.IsInRole(SweetCakeShop.Constants.Roles.Admin.ToString()))
+                            {
+                            <li class="nav-item">
+                                <a class="nav-link px-3 fw-normal" asp-area="" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
+                            </li>
+                        }
                     </ul>
 
                     <!-- Thanh tìm kiếm bo tròn -->
-                    <form class="d-flex me-3" style="min-width: 280px;">
+                    <form class="d-flex me-3" style="min-width: 280px;" method="get" asp-area="" asp-controller="Products" asp-action="IndexPro">
                         <div class="input-group">
-                            <input class="form-control rounded-pill ps-4" type="search" placeholder="Tìm kiếm sản phẩm" 
+                            <input class="form-control rounded-pill ps-4" type="search" name="searchTerm" value="@Context.Request.Query["searchTerm"]" placeholder="Tìm kiếm sản phẩm"
                                    style="border-right: none; padding-right: 40px; background-color: #f5f5f5; border: 1px solid #e0e0e0;">
-                            <button class="btn position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent" 
+                            <button class="btn position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent"
                                     type="submit" style="z-index: 10; margin-right: 8px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
                                 </svg>
                             </button>
                         </div>
                     </form>
 
                     <!-- Giỏ hàng -->
-                    <a class="position-relative me-3 text-decoration-none text-dark d-flex align-items-center" 
+                    <a class="position-relative me-3 text-decoration-none text-dark d-flex align-items-center"
                        asp-area="" asp-controller="Cart" asp-action="Index">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
                         </svg>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-pink">
-                            0
-                        </span>
+
+                        @await Component.InvokeAsync("CartBadge")
                     </a>
 
                     <!-- Nút đăng nhập -->
-                  @*   <a class="btn btn-pink rounded-pill px-4 py-2 fw-normal" 
-                       asp-area="" asp-controller="Account" asp-action="Login">Đăng nhập</a> *@
-                           <partial name="_LoginPartial" />
+                    <partial name="_LoginPartial" />
 
                 </div>
             </div>
@@ -102,7 +111,7 @@
         </main>
     </div>
 
-    <footer class="mt-auto py-5" style="background-color: #ffe4e8;">
+    <footer class="mt-auto py-5" style="background-color: #ffeaf3;">
         <div class="container">
             <div class="row">
 
@@ -110,8 +119,8 @@
                 <div class="col-lg-4 mb-4">
                     <img src="~/images/logo.png" alt="SweetCakeShop" height="50" class="mb-3" />
                     <p class="text-muted">
-                        Chúng tôi luôn tạo ra những chiếc bánh ngon tuyệt nhất trước khi bán cho khách hàng. 
-                        Được hàng ngàn người tin tưởng, chúng tôi hướng đến việc mang lại 
+                        Chúng tôi luôn tạo ra những chiếc bánh ngon tuyệt nhất trước khi bán cho khách hàng.
+                        Được hàng ngàn người tin tưởng, chúng tôi hướng đến việc mang lại
                         những chiếc bánh ngon cho trải nghiệm khách hàng tốt nhất.
                     </p>
                 </div>
@@ -124,7 +133,7 @@
                         <li class="mb-2"><a href="/Products" class="text-muted text-decoration-none">Bán chạy</a></li>
                         <li class="mb-2"><a href="/Products" class="text-muted text-decoration-none">Ưu đãi</a></li>
                         <li class="mb-2"><a href="/Home/Contact" class="text-muted text-decoration-none">Liên hệ</a></li>
-                        <li class="mb-2"><a href="/Home/FAQ" class="text-muted text-decoration-none">FAQ</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none">FAQ</a></li>
                     </ul>
                 </div>
 
@@ -163,6 +172,46 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
+    @await Html.PartialAsync("_Toast")
+
+    <script>
+        // small client helpers to handle add-to-cart and update badge
+        function updateCartBadge() {
+            fetch('/Cart/Count')
+                .then(r => r.json())
+                .then(j => {
+                    const b = document.querySelector('.cart-badge-count');
+                    if (b) b.textContent = j.count;
+                });
+        }
+
+        function addToCartAjax(productId, quantity = 1) {
+            const body = new URLSearchParams();
+            body.append('id', productId);
+            body.append('quantity', quantity);
+
+            fetch('/Cart/Add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data?.success) {
+                    showToast(data.message, 'success');
+                    updateCartBadge();
+                } else {
+                    showToast('Không thể thêm vào giỏ hàng.', 'danger');
+                }
+            })
+            .catch(() => showToast('Lỗi thêm vào giỏ hàng.', 'danger'));
+        }
+
+        // Update badge at page load
+        document.addEventListener('DOMContentLoaded', () => updateCartBadge());
+    </script>
+
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

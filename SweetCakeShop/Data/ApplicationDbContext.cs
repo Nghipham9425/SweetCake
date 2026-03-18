@@ -16,6 +16,8 @@ namespace SweetCakeShop.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Ingredient> Ingredients { get; set; }
+        public DbSet<Recipe> Recipes { get; set; } // NEW
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -26,6 +28,45 @@ namespace SweetCakeShop.Data
                 .HasOne(o => o.User)
                 .WithMany()
                 .HasForeignKey(o => o.UserId);
+
+            // set precision / column types to avoid silent truncation
+            builder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Order>()
+                .Property(o => o.TotalPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<OrderDetail>()
+                .Property(od => od.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Ingredient>()
+                .Property(i => i.Quantity)
+                .HasPrecision(10, 2);
+
+            builder.Entity<Recipe>(entity =>
+            {
+                entity.ToTable("Recipe");
+
+                entity.HasKey(r => r.RecipeID);
+
+                entity.Property(r => r.Quantity)
+                      .HasPrecision(10, 2);
+
+                entity.HasOne(r => r.Product)
+                    .WithMany()
+                    .HasForeignKey(r => r.ProductID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(r => r.Ingredient)
+                    .WithMany()
+                    .HasForeignKey(r => r.IngredientsID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(r => new { r.ProductID, r.IngredientsID }).IsUnique();
+            });
         }
     }
 }

@@ -115,6 +115,10 @@ namespace SweetCakeShop.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+
+                    // THÊM DÒNG NÀY ĐỂ KÍCH HOẠT THÔNG BÁO
+                    TempData["LoginSuccess"] = "True";
+
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

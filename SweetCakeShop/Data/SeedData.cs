@@ -9,12 +9,15 @@ namespace SweetCakeShop.Data
         {
             using var context = new ApplicationDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
-            context.Database.EnsureCreated();
+            // Use migrations to update database schema. EnsureCreated() bypasses migrations
+            // and will break migration-based workflows. Use Migrate() so pending
+            // migrations are applied automatically at startup.
+            context.Database.Migrate();
 
             Console.WriteLine("Bắt đầu seed dữ liệu mới...");
 
             var categories = new Category[]
-            {
+            {   
                 new Category { CategoryName = "Bánh kem" },
                 new Category { CategoryName = "Bánh bông lan" },
                 new Category { CategoryName = "Bánh quy" },

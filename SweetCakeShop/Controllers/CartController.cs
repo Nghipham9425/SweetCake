@@ -5,6 +5,7 @@ using SweetCakeShop.Models;
 using SweetCakeShop.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System; // added for Uri
 
 namespace SweetCakeShop.Controllers
 {
@@ -68,14 +69,19 @@ namespace SweetCakeShop.Controllers
             if (!cart.Items.Any())
                 return RedirectToAction("Index");
 
+            // If user is not authenticated, notify and redirect to login (preserve returnUrl back to Checkout)
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                TempData["LoginMessage"] = "Bạn phải tiến hành đăng nhập để tiếp tục mua sản phẩm";
+                var returnUrl = Url.Action("Checkout", "Cart");
+                return Redirect($"/Identity/Account/Login?returnUrl={Uri.EscapeDataString(returnUrl)}");
+            }
+
             var model = new CheckoutViewModel();
 
             // If user is logged in, you could prefill name/email from claims/profile
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                model.CustomerEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-                model.CustomerName = User.Identity?.Name ?? string.Empty;
-            }
+            model.CustomerEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+            model.CustomerName = User.Identity?.Name ?? string.Empty;
 
             ViewData["Cart"] = cart;
             return View(model);

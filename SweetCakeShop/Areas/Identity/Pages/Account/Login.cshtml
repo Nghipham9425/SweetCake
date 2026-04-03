@@ -54,6 +54,17 @@
     </div>
 </div>
 
+@if (TempData["LoginMessage"] != null)
+{
+    var serialized = System.Text.Json.JsonSerializer.Serialize(TempData["LoginMessage"].ToString());
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // showToast is defined in _Toast partial included by the layout
+            showToast(@Html.Raw(serialized), 'warning', 5000);
+        });
+    </script>
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

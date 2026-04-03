@@ -7,6 +7,7 @@ using SweetCakeShop.Models;
 using Stripe;
 using Stripe.Checkout;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SweetCakeShop.Services
 {
@@ -17,7 +18,7 @@ namespace SweetCakeShop.Services
         public decimal Amount { get; set; }
         public bool Success { get; set; } = false;
         public string Message { get; set; } = string.Empty;
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 
     public class PaymentService : IPaymentService
@@ -33,19 +34,14 @@ namespace SweetCakeShop.Services
             _logger = logger;
         }
 
-        // Create a Stripe Checkout Session and return the hosted checkout URL
-        public async Task<PaymentResult> CreatePaymentAsync(Order order)
+        // Create a Stripe Checkout Session and return the hosted checkout URL.
+        // successUrl and cancelUrl are passed from the controller (built with Url.Action).
+        public async Task<PaymentResult> CreatePaymentAsync(Order order, string successUrl, string cancelUrl)
         {
             try
             {
-                // Amount in smallest currency unit (VND uses whole integer)
+                // Amount in smallest currency unit (VND used as whole integer here)
                 var amount = (long)order.TotalPrice;
-
-                // Build the success and cancel URLs (redirect back to your app)
-                var successUrl = _configuration["PaymentGateway:SuccessUrl"] ??
-                                 $"https://{_configuration["ASPNETCORE_HOST"] ?? "localhost"}/Cart/PaymentCallback?orderId={order.OrderId}&status=success";
-                var cancelUrl = _configuration["PaymentGateway:CancelUrl"] ??
-                                $"https://{_configuration["ASPNETCORE_HOST"] ?? "localhost"}/Cart/Payment?orderId={order.OrderId}";
 
                 var options = new SessionCreateOptions
                 {
@@ -53,7 +49,6 @@ namespace SweetCakeShop.Services
                     Mode = "payment",
                     LineItems = new List<SessionLineItemOptions>
                     {
-                        // Use PriceData -> ProductData and UnitAmount/ Currency
                         new SessionLineItemOptions
                         {
                             PriceData = new SessionLineItemPriceDataOptions
@@ -93,7 +88,7 @@ namespace SweetCakeShop.Services
             {
                 _logger.LogError(ex, "Error creating Stripe Checkout Session for order {OrderId}", order.OrderId);
 
-                // fallback: create local bank transfer instruction so UI stays usable
+                // fallback: local bank transfer code so UI remains usable
                 var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
                 var paymentCode = $"BANK-{order.OrderId}-{timestamp}";
                 var message =
@@ -111,7 +106,6 @@ namespace SweetCakeShop.Services
             }
         }
 
-        // Keep compatibility (not used here) – returns local bank instructions
         public Task<string> CreatePaymentRedirectUrlAsync(Order order, string returnUrl)
         {
             var providerBase = _configuration["PaymentGateway:ProviderUrl"] ?? "https://example-payment-provider.test";

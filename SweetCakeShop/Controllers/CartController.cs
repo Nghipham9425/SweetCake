@@ -6,6 +6,9 @@ using SweetCakeShop.Models;
 using SweetCakeShop.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Stripe.Checkout;
+using Stripe;
+using System.Threading.Tasks;
 
 namespace SweetCakeShop.Controllers
 {
@@ -142,27 +145,32 @@ namespace SweetCakeShop.Controllers
 
             if (method == "COD")
             {
-                order.Status = "Confirmed";
+                order.Status = "Confirmed"; // or "PendingPayment" as you prefer for COD
                 await _context.SaveChangesAsync();
 
                 return RedirectToAction("Success", new { orderId = order.OrderId });
             }
             else if (method == "Online")
             {
-                // Create Stripe Checkout Session (or other provider) and redirect if we get a URL
-                var payment = await _paymentService.CreatePaymentAsync(order);
+                // Build success/cancel URLs that Stripe will redirect to.
+                // Use Stripe's placeholder {CHECKOUT_SESSION_ID} so we can verify the session on return.
+                var baseSuccessUrl = Url.Action("Success", "Cart", new { orderId = order.OrderId }, Request.Scheme) ?? string.Empty;
+                var successUrl = baseSuccessUrl + (baseSuccessUrl.Contains("?") ? "&session_id={CHECKOUT_SESSION_ID}" : "?session_id={CHECKOUT_SESSION_ID}");
+                var cancelUrl = Url.Action("Payment", "Cart", new { orderId = order.OrderId }, Request.Scheme) ?? string.Empty;
 
-                // Mark order awaiting online payment (or Redirected)
+                // Create Stripe Checkout Session via service (provides session.Url)
+                var payment = await _paymentService.CreatePaymentAsync(order, successUrl, cancelUrl);
+
+                // Mark order awaiting online payment
                 order.Status = "AwaitingPayment";
                 await _context.SaveChangesAsync();
 
                 if (!string.IsNullOrEmpty(payment.PaymentUrl))
                 {
-                    // redirect user to Stripe Checkout
-                    return Redirect(payment.PaymentUrl);
+                    return Redirect(payment.PaymentUrl); // send browser to Stripe Checkout
                 }
 
-                // otherwise render Payment view with fallback info (bank transfer)
+                // fallback: show Payment view with bank-transfer info
                 var model = new PaymentViewModel
                 {
                     Order = order,
@@ -172,6 +180,7 @@ namespace SweetCakeShop.Controllers
                 return View("Payment", model);
             }
 
+            // unexpected method
             TempData["Error"] = "Phương thức thanh toán không hợp lệ.";
             return RedirectToAction("Payment", new { orderId = order.OrderId });
         }
@@ -211,8 +220,40 @@ namespace SweetCakeShop.Controllers
             return RedirectToAction("Success", new { orderId = order.OrderId });
         }
 
-        public IActionResult Success(int orderId)
+        // Success: can be reached from Stripe redirect (contains session_id) or internal flows.
+        [HttpGet]
+        public async Task<IActionResult> Success(int orderId, string? session_id)
         {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId);
+            if (order == null)
+                return NotFound();
+
+            // If Stripe returned a session_id, verify payment status server-side (recommended)
+            if (!string.IsNullOrEmpty(session_id))
+            {
+                try
+                {
+                    var sessionService = new SessionService();
+                    var session = await sessionService.GetAsync(session_id);
+
+                    if (session != null && session.PaymentStatus == "paid")
+                    {
+                        order.Status = "Confirmed";
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        // payment not confirmed yet — keep status or mark accordingly
+                        order.Status = "PaymentFailed";
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                catch
+                {
+                    // if verification fails, don't throw to user; keep current order status
+                }
+            }
+
             ViewData["OrderId"] = orderId;
             return View();
         }

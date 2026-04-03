@@ -20,11 +20,13 @@ namespace SweetCakeShop.Areas.Identity.Pages.Account
     public class LoginModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -115,6 +117,20 @@ namespace SweetCakeShop.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+
+                    // Re-issue a persistent cookie explicitly to ensure cookie includes Expires when RememberMe is checked.
+                    // PasswordSignInAsync normally does this, but re-signing ensures persistence in environments where the initial cookie
+                    // might be treated as session-only.
+                    var user = await _userManager.FindByEmailAsync(Input.Email);
+                    if (user != null)
+                    {
+                        var authProps = new AuthenticationProperties
+                        {
+                            IsPersistent = Input.RememberMe,
+                            ExpiresUtc = Input.RememberMe ? DateTimeOffset.UtcNow.AddYears(100) : (DateTimeOffset?)null
+                        };
+                        await _signInManager.SignInAsync(user, authProps);
+                    }
 
                     // THÊM DÒNG NÀY ĐỂ KÍCH HOẠT THÔNG BÁO
                     TempData["LoginSuccess"] = "True";

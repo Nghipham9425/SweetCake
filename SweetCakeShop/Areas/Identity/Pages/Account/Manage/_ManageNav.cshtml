@@ -13,6 +13,9 @@
     <li class="nav-item mb-2">
         <a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext) pink-nav" id="change-password" asp-page="./ChangePassword">Mật khẩu</a>
     </li>
+    <li class="nav-item mb-2">
+        <a class="nav-link @ManageNavPages.OrdersNavClass(ViewContext) pink-nav" id="orders" asp-page="./Orders">Lịch sử mua hàng</a>
+    </li>
     @if (hasExternalLogins)
     {
         <li id="external-logins" class="nav-item mb-2">

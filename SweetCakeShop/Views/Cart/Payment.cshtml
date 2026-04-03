@@ -1,0 +1,101 @@
+﻿@model SweetCakeShop.Models.ViewModels.PaymentViewModel
+
+@{
+    ViewData["Title"] = "Thanh toán";
+    var order = Model.Order;
+}
+
+<div class="container my-5">
+    <h2 class="mb-4">Thanh toán cho đơn hàng #@order?.OrderId</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Thông tin người nhận</h5>
+            <p><strong>@order?.CustomerName</strong></p>
+            <p>@order?.CustomerEmail</p>
+            <p>@order?.CustomerPhone</p>
+            <p>@order?.ShippingAddress</p>
+
+            <h5 class="mt-4">Phương thức thanh toán</h5>
+
+            @if (Model.PaymentResult == null)
+            {
+                <form asp-action="ProcessPayment" method="post">
+                    <input type="hidden" name="orderId" value="@order?.OrderId" />
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="method" id="cod" value="COD" checked />
+                        <label class="form-check-label" for="cod">Thanh toán khi nhận hàng (COD)</label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="method" id="online" value="Online" />
+                        <label class="form-check-label" for="online">Thanh toán online</label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a asp-action="Checkout" class="btn btn-outline-secondary">Quay lại</a>
+                        <button type="submit" class="btn btn-primary">Tiến hành thanh toán</button>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <h6>Kết quả tạo thanh toán</h6>
+
+                @if (Model.PaymentResult.Success)
+                {
+                    <div class="alert alert-success">
+                        <p><strong>Mã thanh toán:</strong> @Model.PaymentResult.PaymentCode</p>
+                        @if (!string.IsNullOrEmpty(Model.PaymentResult.PaymentUrl))
+                        {
+                            <p>Hoặc <a href="@Model.PaymentResult.PaymentUrl" class="fw-bold" target="_blank">thanh toán trực tuyến tại đây</a>.</p>
+                        }
+                        <p>Số tiền cần thanh toán: @Model.PaymentResult.Amount.ToString("N0") ₫</p>
+                    </div>
+
+                    <div>
+                        <a asp-action="Success" asp-route-orderId="@order?.OrderId" class="btn btn-success">Hoàn tất</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <p>@Model.PaymentResult.Message</p>
+                        <p><strong>Mã dự phòng:</strong> @Model.PaymentResult.PaymentCode</p>
+                    </div>
+                    <div>
+                        <a asp-action="Payment" asp-route-orderId="@order?.OrderId" class="btn btn-outline-primary">Thử lại</a>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="col-md-6">
+            <h5>Chi tiết đơn hàng</h5>
+            <table class="table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>SL</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in order?.OrderDetails ?? Enumerable.Empty<SweetCakeShop.Models.OrderDetail>())
+                    {
+                        <tr>
+                            <td>@d.ProductId</td>
+                            <td>@d.Quantity</td>
+                            <td>@d.Price.ToString("N0") ₫</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" class="text-end fw-bold">Tổng:</td>
+                        <td class="fw-bold">@order?.TotalPrice.ToString("N0") ₫</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

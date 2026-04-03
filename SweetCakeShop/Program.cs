@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SweetCakeShop.Data;
-using SweetCakeShop.Services; // <- added
+using SweetCakeShop.Services;
+using Stripe;
 
 namespace SweetCakeShop
 {
@@ -33,6 +34,18 @@ namespace SweetCakeShop
             });
             builder.Services.AddScoped<CartService>();
             builder.Services.AddScoped<OrderService>();
+
+            // Payment service registration (DI). Keep HttpClient for backward compatibility
+            builder.Services.AddHttpClient<IPaymentService, PaymentService>();
+
+            // Configure Stripe API key from configuration or environment
+            // Put your secret key into environment variable or user secrets: "Stripe:SecretKey"
+            var stripeSecret = builder.Configuration["Stripe:SecretKey"]
+                               ?? Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+            if (!string.IsNullOrWhiteSpace(stripeSecret))
+            {
+                StripeConfiguration.ApiKey = stripeSecret;
+            }
 
             var app = builder.Build();
 

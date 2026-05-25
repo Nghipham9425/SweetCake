@@ -29,6 +29,23 @@ namespace SweetCakeShop.Data
                 .WithMany()
                 .HasForeignKey(o => o.UserId);
 
+            // set precision / column types to avoid silent truncation
+            builder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Order>()
+                .Property(o => o.TotalPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<OrderDetail>()
+                .Property(od => od.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Ingredient>()
+                .Property(i => i.Quantity)
+                .HasPrecision(10, 2);
+
             builder.Entity<Recipe>(entity =>
             {
                 entity.ToTable("Recipe");

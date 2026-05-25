@@ -39,16 +39,14 @@
 
             <div class="d-flex align-items-center mb-4">
                 <label class="me-3 fw-semibold">Số lượng:</label>
-                <input type="number" class="form-control" style="width: 120px;" min="1" value="1" />
+                <input id="product-qty" type="number" class="form-control" style="width: 120px;" min="1" value="1" />
             </div>
 
             <div class="d-flex gap-3">
-                <button class="btn btn-pink px-4 py-2">
+                <button class="btn btn-pink px-4 py-2" onclick="addToCartFromDetails(@Model.Product.ProductId)">
                     Thêm vào giỏ hàng
                 </button>
-                <button class="btn btn-outline-danger px-4 py-2">
-                    Mua ngay
-                </button>
+            
             </div>
         </div>
     </div>
@@ -85,3 +83,11 @@
     </div>
 }
 </div>
+
+<script>
+    function addToCartFromDetails(productId) {
+        const qtyInput = document.getElementById('product-qty');
+        const qty = qtyInput ? Math.max(1, parseInt(qtyInput.value || '1')) : 1;
+        addToCartAjax(productId, qty);
+    }
+</script>

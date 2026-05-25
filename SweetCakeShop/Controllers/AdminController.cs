@@ -24,6 +24,226 @@ namespace SweetCakeShop.Controllers
             return View();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> TopSellingProducts()
+        {
+            var ranking = await
+                (from od in _context.OrderDetails.AsNoTracking()
+                 join o in _context.Orders.AsNoTracking() on od.OrderId equals o.OrderId
+                 join p in _context.Products.AsNoTracking() on od.ProductId equals p.ProductId
+                 where o.Status == "Confirmed" || o.Status == "confirmed"
+                 group new { od, o, p } by new { od.ProductId, p.ProductName } into g
+                 orderby g.Sum(x => x.od.Quantity) descending, g.Key.ProductName
+                 select new AdminTopSellingProductViewModel
+                 {
+                     ProductId = g.Key.ProductId,
+                     ProductName = g.Key.ProductName,
+                     SoldQuantity = g.Sum(x => x.od.Quantity),
+                     TotalRevenue = g.Sum(x => x.od.Quantity * x.od.Price),
+                     ConfirmedOrderCount = g.Select(x => x.o.OrderId).Distinct().Count()
+                 })
+                .ToListAsync();
+
+            for (var i = 0; i < ranking.Count; i++)
+            {
+                ranking[i].Rank = i + 1;
+            }
+
+            return View(ranking);
+        }
+
+        #region Order Management
+        [HttpGet]
+        public async Task<IActionResult> Orders()
+        {
+            var orders = await _context.Orders
+                .AsNoTracking()
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            return View(orders);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> OrderDetails(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            if (order == null)
+            {
+                TempData["Error"] = "Không tìm thấy đơn hàng";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            return View(order);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, string status)
+        {
+            var validStatuses = new[] { "Pending", "Confirmed", "Shipped", "Delivered", "Cancelled" };
+            if (!validStatuses.Contains(status))
+            {
+                TempData["Error"] = "Trạng thái không hợp lệ";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId);
+            if (order == null)
+            {
+                TempData["Error"] = "Không tìm thấy đơn hàng";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            order.Status = status;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Đã cập nhật trạng thái đơn #{order.OrderId}";
+            return RedirectToAction(nameof(Orders));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteOrder(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            if (order == null)
+            {
+                TempData["Error"] = "Không tìm thấy đơn hàng";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            if (order.OrderDetails.Any())
+            {
+                _context.OrderDetails.RemoveRange(order.OrderDetails);
+            }
+
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Đã xóa đơn hàng #{orderId}";
+            return RedirectToAction(nameof(Orders));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MakeCake(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            if (order == null)
+            {
+                TempData["Error"] = "Không tìm thấy đơn hàng";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            if (!order.OrderDetails.Any())
+            {
+                TempData["Warning"] = "Không đủ nguyên liệu";
+                return RedirectToAction(nameof(OrderDetails), new { orderId });
+            }
+
+            // Không làm lại cho đơn đã xác nhận/giao/hủy
+            if (order.Status == "Confirmed" || order.Status == "Shipped" || order.Status == "Delivered" || order.Status == "Cancelled")
+            {
+                TempData["Error"] = "Đơn hàng không ở trạng thái có thể làm bánh";
+                return RedirectToAction(nameof(OrderDetails), new { orderId });
+            }
+
+            var productIds = order.OrderDetails
+                .Select(od => od.ProductId)
+                .Distinct()
+                .ToList();
+
+            var recipes = await _context.Recipes
+                .Where(r => productIds.Contains(r.ProductID))
+                .ToListAsync();
+
+            var recipesByProduct = recipes
+                .GroupBy(r => r.ProductID)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Tính tổng nguyên liệu cần theo từng ingredient
+            var requiredByIngredient = new Dictionary<int, decimal>();
+
+            foreach (var detail in order.OrderDetails)
+            {
+                if (!recipesByProduct.TryGetValue(detail.ProductId, out var productRecipe) || productRecipe.Count == 0)
+                {
+                    TempData["Warning"] = "Không đủ nguyên liệu";
+                    return RedirectToAction(nameof(OrderDetails), new { orderId });
+                }
+
+                foreach (var recipe in productRecipe)
+                {
+                    var required = recipe.Quantity * detail.Quantity;
+
+                    if (requiredByIngredient.ContainsKey(recipe.IngredientsID))
+                        requiredByIngredient[recipe.IngredientsID] += required;
+                    else
+                        requiredByIngredient[recipe.IngredientsID] = required;
+                }
+            }
+
+            var ingredientIds = requiredByIngredient.Keys.ToList();
+            var ingredients = await _context.Ingredients
+                .Where(i => ingredientIds.Contains(i.IngredientID))
+                .ToListAsync();
+
+            // Có công thức nhưng thiếu dòng nguyên liệu tương ứng
+            if (ingredients.Count != ingredientIds.Count)
+            {
+                TempData["Warning"] = "Không đủ nguyên liệu";
+                return RedirectToAction(nameof(OrderDetails), new { orderId });
+            }
+
+            // Kiểm tra tồn kho đủ hay không
+            foreach (var ingredient in ingredients)
+            {
+                var required = requiredByIngredient[ingredient.IngredientID];
+                if (ingredient.Quantity < required)
+                {
+                    TempData["Warning"] = "Không đủ nguyên liệu";
+                    return RedirectToAction(nameof(OrderDetails), new { orderId });
+                }
+            }
+
+            // Trừ kho + cập nhật trạng thái
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var ingredient in ingredients)
+                {
+                    var required = requiredByIngredient[ingredient.IngredientID];
+                    ingredient.Quantity = Math.Round(ingredient.Quantity - required, 2, MidpointRounding.AwayFromZero);
+                }
+
+                order.Status = "Confirmed";
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                TempData["Success"] = $"Đã làm bánh cho đơn #{order.OrderId} và cập nhật trạng thái Confirmed";
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                TempData["Error"] = "Có lỗi xảy ra khi làm bánh";
+            }
+
+            return RedirectToAction(nameof(OrderDetails), new { orderId });
+        }
+        #endregion
+
         #region Category Management
         [HttpGet]
         public async Task<IActionResult> Categories()

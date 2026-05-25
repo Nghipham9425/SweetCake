@@ -20,8 +20,8 @@
                                asp-controller="Home" asp-action="Index">
                             Trang chủ
                         </a>
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active fw-semibold" : "text-dark")"
-                           asp-controller="Admin" asp-action="Dashboard">
+                        <a class="nav-link @((ViewContext.RouteData.Values["action"]?.ToString() == "Orders" || ViewContext.RouteData.Values["action"]?.ToString() == "OrderDetails") ? "active fw-semibold" : "text-dark")"
+                           asp-controller="Admin" asp-action="Orders">
                             Xem Orders
                         </a>
                         <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Categories" ? "active fw-semibold" : "text-dark")"
@@ -36,8 +36,8 @@
                            asp-controller="Admin" asp-action="Products">
                             Xem số lượng bánh có thể làm
                         </a>
-                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active fw-semibold" : "text-dark")"
-                               asp-controller="Admin" asp-action="Dashboard">
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "TopSellingProducts" ? "active fw-semibold" : "text-dark")"
+                           asp-controller="Admin" asp-action="TopSellingProducts">
                             Bánh bán chạy nhất
                         </a>
                     </li>

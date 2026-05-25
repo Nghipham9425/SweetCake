@@ -9,7 +9,7 @@ namespace SweetCakeShop.Data
         {
             using var context = new ApplicationDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
-            context.Database.EnsureCreated();
+            context.Database.Migrate();
 
             Console.WriteLine("Bắt đầu seed dữ liệu mới...");
 

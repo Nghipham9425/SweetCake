@@ -33,7 +33,7 @@ namespace SweetCakeShop.Controllers
             if (!string.IsNullOrWhiteSpace(categoryName))
             {
                 var categoryKeyword = categoryName.Trim();
-                products = products.Where(p => p.Category.CategoryName == categoryKeyword);
+                products = products.Where(p => p.Category != null && p.Category.CategoryName == categoryKeyword);
             }
             else if (categoryId.HasValue)
             {

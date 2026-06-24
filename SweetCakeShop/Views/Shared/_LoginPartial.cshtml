@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 
 <ul class="navbar-nav align-items-center">
@@ -11,8 +11,8 @@
         }
         else
         {
-            <a class="nav-link p-0" href="#" id="loginMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <img src="~/images/user-icon.png" alt="Login" style="width: 32px; height: 32px; object-fit: contain;" />
+            <a class="nav-link p-0 navbar-login-btn" href="#" id="loginMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="~/images/user-icon.png" alt="Đăng nhập" class="navbar-user-icon" />
             </a>
         }
 

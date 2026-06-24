@@ -1,69 +1,107 @@
 @model IEnumerable<SweetCakeShop.Models.Order>
+@using SweetCakeShop.Constants
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Danh sách đơn hàng";
+    ViewData["Title"] = "Quản lý đơn hàng";
     var stt = 0;
 }
 
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0 text-white">Quản lý Đơn hàng</h3>
+</div>
+
 @if (TempData["Success"] is string success)
 {
-    <div class="alert alert-success py-2">@success</div>
+    <div class="alert alert-success d-flex align-items-center py-2 px-3 mb-4">
+        <i class="bi bi-check-circle-fill me-2 fs-5"></i> @success
+    </div>
 }
 @if (TempData["Error"] is string error)
 {
-    <div class="alert alert-danger py-2">@error</div>
+    <div class="alert alert-danger d-flex align-items-center py-2 px-3 mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i> @error
+    </div>
 }
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Danh sách đơn hàng</h5>
-        <span class="badge text-bg-secondary">@Model.Count()</span>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-white font-playfair"><i class="bi bi-card-list me-2"></i>Danh sách đơn hàng</h5>
+        <span class="badge text-bg-secondary">Tổng cộng: @Model.Count() đơn</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
-                        <th style="width:70px;">STT</th>
+                        <th style="width:60px;" class="text-center">#</th>
                         <th style="width:180px;">Ngày đặt</th>
-                        <th style="width:160px;">Tổng giá</th>
-                        <th style="width:220px;">Trạng thái</th>
-                        <th class="text-end" style="width:320px;">Thao tác</th>
+                        <th style="width:160px;">Tổng giá trị</th>
+                        <th style="width:170px;">Trạng thái</th>
+                        <th class="text-end" style="width:420px; padding-right: 1.5rem;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                 @foreach (var order in Model)
                 {
                     stt++;
+                    var nextStatuses = OrderStatuses.GetAdminNextStatuses(order.Status);
+
                     <tr>
-                        <td>@stt</td>
-                        <td>@order.OrderDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>@order.TotalPrice.ToString("N0") đ</td>
+                        <td class="text-center text-muted">@stt</td>
                         <td>
-                            <form asp-action="UpdateOrderStatus" asp-controller="Admin" method="post" class="d-flex gap-2">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="orderId" value="@order.OrderId" />
-                                <select name="status" class="form-select form-select-sm">
-                                    <option value="Pending" selected="@(order.Status == "Pending")">Pending</option>
-                                    <option value="Confirmed" selected="@(order.Status == "Confirmed")">Confirmed</option>
-                                    <option value="Shipped" selected="@(order.Status == "Shipped")">Shipped</option>
-                                    <option value="Delivered" selected="@(order.Status == "Delivered")">Delivered</option>
-                                    <option value="Cancelled" selected="@(order.Status == "Cancelled")">Cancelled</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-outline-primary">Lưu</button>
-                            </form>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-calendar-check text-muted"></i>
+                                <span>@order.OrderDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
                         </td>
-                        <td class="text-end">
+                        <td class="fw-bold text-primary">@order.TotalPrice.ToString("N0") đ</td>
+                        <td>
+                            <span class="badge text-bg-secondary">@OrderStatuses.GetDisplayName(order.Status)</span>
+                        </td>
+                        <td class="text-end" style="padding-right: 1.5rem;">
                             <a asp-action="OrderDetails" asp-controller="Admin" asp-route-orderId="@order.OrderId"
-                               class="btn btn-sm btn-outline-info">
-                                Xem chi tiết
+                               class="btn btn-sm btn-outline-info me-2">
+                                <i class="bi bi-eye"></i> Chi tiết
                             </a>
 
+                            @foreach (var status in nextStatuses)
+                            {
+                                var buttonClass = status switch
+                                {
+                                    OrderStatuses.Confirmed => "btn-outline-primary",
+                                    OrderStatuses.Shipped => "btn-outline-success",
+                                    OrderStatuses.Completed => "btn-outline-success",
+                                    OrderStatuses.Cancelled => "btn-outline-danger",
+                                    _ => "btn-outline-secondary"
+                                };
+
+                                var iconClass = status switch
+                                {
+                                    OrderStatuses.Confirmed => "bi-check2-square",
+                                    OrderStatuses.Shipped => "bi-truck",
+                                    OrderStatuses.Completed => "bi-clipboard2-check",
+                                    OrderStatuses.Cancelled => "bi-x-circle",
+                                    _ => "bi-arrow-right-circle"
+                                };
+
+                                <form asp-action="TransitionOrderStatus" asp-controller="Admin" method="post" class="d-inline"
+                                      onsubmit="return confirm('Chuyển đơn #@order.OrderId sang @OrderStatuses.GetDisplayName(status)?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="orderId" value="@order.OrderId" />
+                                    <input type="hidden" name="toStatus" value="@status" />
+                                    <button type="submit" class="btn btn-sm @buttonClass me-2">
+                                        <i class="bi @iconClass"></i> @OrderStatuses.GetDisplayName(status)
+                                    </button>
+                                </form>
+                            }
+
                             <form asp-action="DeleteOrder" asp-controller="Admin" method="post" class="d-inline"
-                                  onsubmit="return confirm('Bạn có chắc muốn xóa đơn này?');">
+                                  onsubmit="return confirm('Cảnh báo: Hành động này sẽ xóa vĩnh viễn đơn hàng. Bạn chắc chắn chứ?');">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="orderId" value="@order.OrderId" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash3"></i> Xóa
+                                </button>
                             </form>
                         </td>
                     </tr>
@@ -74,7 +112,10 @@
 
         @if (!Model.Any())
         {
-            <div class="text-muted">Chưa có đơn hàng nào.</div>
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+                <span>Chưa có đơn hàng nào trong hệ thống.</span>
+            </div>
         }
     </div>
 </div>

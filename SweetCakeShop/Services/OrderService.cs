@@ -8,16 +8,22 @@ namespace SweetCakeShop.Services
     public class OrderService
     {
         private readonly ApplicationDbContext _db;
+        private readonly IOrderInventoryService _inventory;
 
-        public OrderService(ApplicationDbContext db)
+        public OrderService(ApplicationDbContext db, IOrderInventoryService inventory)
         {
             _db = db;
+            _inventory = inventory;
         }
 
         public async Task<Order> CreateOrderAsync(CartViewModel cart, CheckoutViewModel checkout, string? userId)
         {
             if (cart == null || !cart.Items.Any())
                 throw new ArgumentException("Cart is empty", nameof(cart));
+
+            var stockCheck = await _inventory.CheckCartAsync(cart);
+            if (!stockCheck.IsAvailable)
+                throw new InvalidOperationException(stockCheck.Message);
 
             var order = new Order
             {
@@ -42,7 +48,8 @@ namespace SweetCakeShop.Services
                     OrderId = order.OrderId,
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
-                    Price = item.Price
+                    Price = item.Price,
+                    CostPrice = item.CostPrice
                 };
                 _db.OrderDetails.Add(detail);
             }

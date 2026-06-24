@@ -17,7 +17,7 @@ namespace SweetCakeShop.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -241,6 +241,113 @@ namespace SweetCakeShop.Data.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("SweetCakeShop.Models.CustomerBehaviorEvent", b =>
+                {
+                    b.Property<long>("CustomerBehaviorEventId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CustomerBehaviorEventId"));
+
+                    b.Property<string>("ChatToken")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomerEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("PageUrl")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("CustomerBehaviorEventId");
+
+                    b.HasIndex("ChatToken");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CustomerEmail");
+
+                    b.HasIndex("EventType");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CustomerBehaviorEvents", (string)null);
+                });
+
+            modelBuilder.Entity("SweetCakeShop.Models.CustomerChatMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ChatToken")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int?>("ContextProductId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Sender")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatToken");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CustomerChatMessages", (string)null);
+                });
+
             modelBuilder.Entity("SweetCakeShop.Models.Ingredient", b =>
                 {
                     b.Property<int>("IngredientID")
@@ -274,6 +381,9 @@ namespace SweetCakeShop.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CustomerEmail")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -285,6 +395,9 @@ namespace SweetCakeShop.Data.Migrations
                     b.Property<string>("CustomerPhone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("InventoryDeducted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsGuest")
                         .HasColumnType("bit");
@@ -323,6 +436,10 @@ namespace SweetCakeShop.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderDetailId"));
 
+                    b.Property<decimal>("CostPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
@@ -356,8 +473,22 @@ namespace SweetCakeShop.Data.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("CostPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DiscountEndAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("DiscountPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("DiscountStartAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
@@ -375,6 +506,69 @@ namespace SweetCakeShop.Data.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("SweetCakeShop.Models.ProductPriceHistory", b =>
+                {
+                    b.Property<int>("ProductPriceHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductPriceHistoryId"));
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChangedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<decimal>("NewCostPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("NewDiscountEndAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("NewDiscountPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("NewDiscountStartAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("NewPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("OldCostPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("OldDiscountEndAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("OldDiscountPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("OldDiscountStartAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("OldPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductPriceHistoryId");
+
+                    b.HasIndex("ChangedAt");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductPriceHistories", (string)null);
                 });
 
             modelBuilder.Entity("SweetCakeShop.Models.Recipe", b =>
@@ -456,6 +650,17 @@ namespace SweetCakeShop.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SweetCakeShop.Models.CustomerBehaviorEvent", b =>
+                {
+                    b.HasOne("SweetCakeShop.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("SweetCakeShop.Models.Order", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
@@ -497,6 +702,17 @@ namespace SweetCakeShop.Data.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("SweetCakeShop.Models.ProductPriceHistory", b =>
+                {
+                    b.HasOne("SweetCakeShop.Models.Product", "Product")
+                        .WithMany("PriceHistories")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("SweetCakeShop.Models.Recipe", b =>
                 {
                     b.HasOne("SweetCakeShop.Models.Ingredient", "Ingredient")
@@ -524,6 +740,11 @@ namespace SweetCakeShop.Data.Migrations
             modelBuilder.Entity("SweetCakeShop.Models.Order", b =>
                 {
                     b.Navigation("OrderDetails");
+                });
+
+            modelBuilder.Entity("SweetCakeShop.Models.Product", b =>
+                {
+                    b.Navigation("PriceHistories");
                 });
 #pragma warning restore 612, 618
         }

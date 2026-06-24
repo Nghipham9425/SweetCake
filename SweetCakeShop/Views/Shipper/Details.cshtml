@@ -1,0 +1,100 @@
+@model SweetCakeShop.Models.Order
+@using SweetCakeShop.Constants
+@{
+    Layout = "_ShipperLayout";
+    ViewData["Title"] = $"Chi tiết đơn #{Model.OrderId}";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Chi tiết đơn #@Model.OrderId</h2>
+        <a asp-action="Orders" class="btn btn-outline-secondary">Quay lại</a>
+    </div>
+
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Thông tin giao hàng</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Khách hàng</dt>
+                        <dd class="col-sm-8">@Model.CustomerName</dd>
+
+                        <dt class="col-sm-4">SĐT</dt>
+                        <dd class="col-sm-8">@Model.CustomerPhone</dd>
+
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">@Model.CustomerEmail</dd>
+
+                        <dt class="col-sm-4">Địa chỉ</dt>
+                        <dd class="col-sm-8">@Model.ShippingAddress</dd>
+
+                        <dt class="col-sm-4">Trạng thái</dt>
+                        <dd class="col-sm-8">@Model.Status</dd>
+
+                        <dt class="col-sm-4">Tổng tiền</dt>
+                        <dd class="col-sm-8 fw-bold text-success">@Model.TotalPrice.ToString("N0") đ</dd>
+                    </dl>
+
+                    @if (Model.Status == OrderStatuses.Shipped)
+                    {
+                        <form asp-action="ConfirmDelivered" method="post" class="mt-4"
+                              onsubmit="return confirm('Xác nhận đã giao thành công đơn #@Model.OrderId?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check2-circle me-1"></i>Xác nhận đã giao
+                            </button>
+                        </form>
+
+                        <form asp-action="ConfirmDeliveryFailed" method="post" class="mt-2"
+                              onsubmit="return confirm('Xác nhận không giao được đơn #@Model.OrderId?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+                            <input type="text" name="reason" class="form-control mb-2" maxlength="200" placeholder="Lý do: khách không nghe máy, sai địa chỉ..." />
+                            <button type="submit" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-x-circle me-1"></i>Không giao được
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Sản phẩm</h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center">SL</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td>@(item.Product?.ProductName ?? $"SP #{item.ProductId}")</td>
+                                        <td class="text-center">@item.Quantity</td>
+                                        <td class="text-end">@item.Price.ToString("N0") đ</td>
+                                        <td class="text-end">@((item.Price * item.Quantity).ToString("N0")) đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

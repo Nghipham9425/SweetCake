@@ -5,49 +5,59 @@
     var stt = 0;
 }
 
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0 text-white">Quản lý Danh mục</h3>
+</div>
+
 <div class="container-fluid px-0">
-    <div class="row g-3">
+    <div class="row g-4">
+        <!-- Form thêm danh mục -->
         <div class="col-12 col-lg-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Thêm danh mục</h5>
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0 text-white font-playfair"><i class="bi bi-plus-circle me-2 text-primary"></i>Thêm danh mục</h5>
                 </div>
                 <div class="card-body">
                     <form asp-action="CreateCategory" asp-controller="Admin" method="post">
                         @Html.AntiForgeryToken()
-                        <div class="mb-3">
-                            <label class="form-label">Tên danh mục</label>
-                            <input type="text" name="categoryName" class="form-control" maxlength="100" required />
+                        <div class="mb-4">
+                            <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                            <input type="text" name="categoryName" class="form-control" maxlength="100" placeholder="VD: Bánh sinh nhật" required />
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Thêm mới</button>
+                        <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-bookmark-plus me-2"></i>Tạo danh mục mới</button>
                     </form>
                 </div>
             </div>
         </div>
 
+        <!-- Danh sách danh mục -->
         <div class="col-12 col-lg-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Danh sách danh mục</h5>
-                    <span class="badge text-bg-secondary">@Model.Count()</span>
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-white font-playfair"><i class="bi bi-list-ul me-2"></i>Danh sách hiện có</h5>
+                    <span class="badge text-bg-secondary">Tổng: @Model.Count()</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     @if (TempData["Success"] is string success)
                     {
-                        <div class="alert alert-success py-2">@success</div>
+                        <div class="alert alert-success d-flex align-items-center m-3 mb-0 py-2 px-3">
+                            <i class="bi bi-check-circle-fill me-2 fs-5"></i> @success
+                        </div>
                     }
                     @if (TempData["Error"] is string error)
                     {
-                        <div class="alert alert-danger py-2">@error</div>
+                        <div class="alert alert-danger d-flex align-items-center m-3 mb-0 py-2 px-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i> @error
+                        </div>
                     }
 
-                    <div class="table-responsive">
+                    <div class="table-responsive mt-3">
                         <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
-                                    <th style="width: 90px;">STT</th>
+                                    <th style="width: 80px;" class="text-center">#</th>
                                     <th>Tên danh mục</th>
-                                    <th class="text-end" style="width: 260px;">Thao tác</th>
+                                    <th class="text-end" style="width: 220px; padding-right: 1.5rem;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,21 +65,23 @@
                                 {
                                     stt++;
                                     <tr>
-                                        <td>@stt</td>
+                                        <td class="text-center text-muted">@stt</td>
                                         <td>
                                             <form asp-action="UpdateCategory" asp-controller="Admin" method="post" class="d-flex gap-2">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="categoryId" value="@item.CategoryId" />
-                                                <input type="text" name="categoryName" value="@item.CategoryName" class="form-control form-control-sm" required />
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Lưu</button>
+                                                <input type="text" name="categoryName" value="@item.CategoryName" class="form-control form-control-sm bg-dark text-white border-secondary" required />
+                                                <button type="submit" class="btn btn-sm btn-outline-primary px-3" title="Cập nhật"><i class="bi bi-check2"></i></button>
                                             </form>
                                         </td>
-                                        <td class="text-end">
+                                        <td class="text-end" style="padding-right: 1.5rem;">
                                             <form asp-action="DeleteCategory" asp-controller="Admin" method="post" class="d-inline"
                                                   onsubmit="return confirm('Bạn có chắc muốn xóa danh mục này?');">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="categoryId" value="@item.CategoryId" />
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger px-3">
+                                                    <i class="bi bi-trash3 me-1"></i> Xóa
+                                                </button>
                                             </form>
                                         </td>
                                     </tr>
@@ -80,7 +92,10 @@
 
                     @if (!Model.Any())
                     {
-                        <div class="text-muted">Chưa có danh mục nào.</div>
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-tags fs-1 d-block mb-3 opacity-50"></i>
+                            <span>Chưa có danh mục nào. Hãy tạo một danh mục mới.</span>
+                        </div>
                     }
                 </div>
             </div>

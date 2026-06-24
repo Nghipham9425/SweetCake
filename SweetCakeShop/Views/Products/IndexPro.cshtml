@@ -1,175 +1,197 @@
+@using SweetCakeShop.Models
+@using SweetCakeShop.Helpers
 @using X.PagedList.Mvc.Core
 @using X.PagedList
 @model IPagedList<SweetCakeShop.Models.Product>
 
 @{
-    ViewData["Title"] = "Tất cả sản phẩm";
+    ViewData["Title"] = "Menu Sản phẩm";
     var currentSort = ViewData["CurrentSort"] as string;
     var currentSearch = ViewData["CurrentSearch"] as string;
     var currentCategoryId = ViewData["CurrentCategoryId"] is int categoryId ? categoryId : (int?)null;
     var currentCategoryName = ViewData["CurrentCategoryName"] as string;
+    var currentSalesFilter = ViewData["CurrentSalesFilter"] as string;
+    var categories = ViewData["Categories"] as List<Category> ?? new List<Category>();
+    var soldCounts = ViewData["SoldCounts"] as Dictionary<int, int> ?? new Dictionary<int, int>();
 }
 
-<div class="container-fluid px-lg-5 mt-4">
+<div class="container py-4 anim-fade-up">
+    <div class="d-flex flex-column gap-4 mb-5 pb-3 border-bottom border-1" style="border-color: var(--border)!important;">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2 fs-7 text-muted">
+                    <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Trang chủ</a></li>
+                    <li class="breadcrumb-item active text-pink" aria-current="page">Sản phẩm</li>
+                </ol>
+            </nav>
+            <h2 class="section-title mb-0">
+                @(string.IsNullOrEmpty(currentCategoryName) ? "Tất cả sản phẩm" : currentCategoryName)
+            </h2>
+            @if (!string.IsNullOrEmpty(currentSearch))
+            {
+                <p class="text-muted mt-2 mb-0">Kết quả tìm kiếm cho: <strong class="text-dark">"@currentSearch"</strong></p>
+            }
+        </div>
 
-    <!-- Header với tiêu đề và filter -->
-    <div class="row align-items-center mb-4">
-        <div class="col-md-6">
-            <h2 class="fw-bold">Tất cả sản phẩm</h2>
-        </div>
-        <div class="col-md-6 text-end">
-            <form method="get" class="d-inline-flex align-items-center">
-                <input type="hidden" name="searchTerm" value="@currentSearch" />
-                <input type="hidden" name="categoryId" value="@currentCategoryId" />
-                <input type="hidden" name="categoryName" value="@currentCategoryName" />
-                <label class="me-2 text-muted">Sắp xếp theo:</label>
-                <select name="sortOrder" class="form-select" style="width: auto;" onchange="this.form.submit()">
-                    <option value="" selected="@(string.IsNullOrEmpty(currentSort))">Mặc định</option>
-                    <option value="price_asc" selected="@(currentSort == "price_asc")">Giá: Thấp đến Cao</option>
-                    <option value="price_desc" selected="@(currentSort == "price_desc")">Giá: Cao đến Thấp</option>
+        <form method="get" class="row g-3 align-items-end bg-white p-3 rounded-3 shadow-sm" style="border: 1px solid var(--border);">
+            <input type="hidden" name="searchTerm" value="@currentSearch" />
+            <input type="hidden" name="categoryName" value="" />
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <label class="form-label text-muted fw-medium small">Danh mục</label>
+                <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                    <option value="">Tất cả danh mục</option>
+                    @foreach (var category in categories)
+                    {
+                        <option value="@category.CategoryId" selected="@(currentCategoryId == category.CategoryId)">
+                            @category.CategoryName
+                        </option>
+                    }
                 </select>
-            </form>
-        </div>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <label class="form-label text-muted fw-medium small">Mức bán</label>
+                <select name="salesFilter" class="form-select" onchange="this.form.submit()">
+                    <option value="" selected="@(string.IsNullOrEmpty(currentSalesFilter))">Tất cả sản phẩm</option>
+                    <option value="sold" selected="@(currentSalesFilter == "sold")">Đã từng bán</option>
+                    <option value="not_sold" selected="@(currentSalesFilter == "not_sold")">Chưa bán</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-4 col-lg-3">
+                <label class="form-label text-muted fw-medium small">Sắp xếp</label>
+                <select name="sortOrder" class="form-select" onchange="this.form.submit()">
+                    <option value="" selected="@(string.IsNullOrEmpty(currentSort))">Mặc định</option>
+                    <option value="category_asc" selected="@(currentSort == "category_asc")">Danh mục A-Z</option>
+                    <option value="best_selling" selected="@(currentSort == "best_selling")">Bán chạy nhất</option>
+                    <option value="least_selling" selected="@(currentSort == "least_selling")">Bán ít nhất</option>
+                    <option value="price_asc" selected="@(currentSort == "price_asc")">Giá: thấp đến cao</option>
+                    <option value="price_desc" selected="@(currentSort == "price_desc")">Giá: cao đến thấp</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-lg-3 d-flex gap-2">
+                <button type="submit" class="btn btn-pink flex-fill">
+                    <i class="bi bi-funnel me-1"></i>Lọc
+                </button>
+                <a asp-action="IndexPro" class="btn btn-outline-secondary">Xóa lọc</a>
+            </div>
+        </form>
     </div>
 
-    <!-- Grid sản phẩm -->
-    <div class="row g-4">
+    <div class="row g-4 mb-5">
         @foreach (var product in Model)
         {
-            <div class="col-lg-2 col-md-3 col-sm-4 col-6">
-            <a class="text-decoration-none text-dark" asp-action="Details" asp-route-id="@product.ProductId">
-                <div class="card h-100 shadow-sm product-card">
-                
-                    <!-- Hình ảnh sản phẩm -->
-                    <div class="product-image-wrapper" style="height: 200px; overflow: hidden;">
+            var sold = soldCounts.GetValueOrDefault(product.ProductId);
+            var effectivePrice = ProductPricingHelper.GetEffectivePrice(product);
+            var hasDiscount = ProductPricingHelper.HasActiveDiscount(product);
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <a class="product-card h-100 d-flex flex-column" asp-action="Details" asp-route-id="@product.ProductId">
+                    <div class="position-relative overflow-hidden" style="height: 220px;">
                         @if (!string.IsNullOrEmpty(product.Image))
                         {
-                            <img src="@product.Image" class="card-img-top" alt="@product.ProductName" style="height: 100%; object-fit: cover;">
+                            <img src="@product.Image" class="w-100 h-100 object-fit-cover" alt="@product.ProductName" style="transition: 0.5s;">
                         }
                         else
                         {
-                            <img src="~/images/no-image.png" class="card-img-top" alt="No Image" style="height: 100%; object-fit: cover;">
+                            <img src="~/images/no-image.png" class="w-100 h-100 object-fit-cover" alt="No Image">
+                        }
+
+                        @if (sold > 0)
+                        {
+                            <span class="badge bg-success position-absolute top-0 start-0 m-2">Đã bán @sold</span>
                         }
                     </div>
 
-                    <!-- Thông tin sản phẩm -->
-                    <div class="card-body d-flex flex-column">
-                    
-                        <!-- Tên sản phẩm -->
-                        <h6 class="card-title text-truncate mb-2">@product.ProductName</h6>
+                    <div class="card-body d-flex flex-column px-3 py-3">
+                        <h6 class="card-title text-truncate mb-1">@product.ProductName</h6>
+                        <div class="small text-muted mb-2">@product.Category?.CategoryName</div>
 
-                        <!-- Rating (tạm thời hiển thị mặc định) -->
-                        <div class="mb-2">
-                            <span class="text-warning">★★★★★</span>
-                            <span class="text-muted small">(0)</span>
+                        <div class="rating mb-2">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-half"></i>
                         </div>
 
-                        <!-- Giá -->
-                        <div class="mt-auto">
-                            <p class="mb-1">
-                                <span class="text-success fw-bold fs-5">@product.Price.ToString("N0") đ</span>
-                            </p>
+                        <div class="mt-auto pt-2">
+                            <div class="mb-3 text-center">
+                                @if (hasDiscount)
+                                {
+                                    <div class="small text-muted text-decoration-line-through">@product.Price.ToString("N0") đ</div>
+                                    <div class="fw-bold price-tag">@effectivePrice.ToString("N0") đ</div>
+                                }
+                                else
+                                {
+                                    <div class="fw-bold price-tag">@product.Price.ToString("N0") đ</div>
+                                }
+                            </div>
 
-                            <!-- Nút thêm vào giỏ hàng -->
-                            <button type="button" class="btn btn-outline-success btn-sm w-100" onclick="addToCart(event, @product.ProductId)">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                                </svg>
-                                Thêm
+                            <button type="button" class="btn-add-cart" onclick="addToCart(event, @product.ProductId)">
+                                <i class="bi bi-bag-plus"></i> Mua ngay
                             </button>
                         </div>
                     </div>
-                </div>
-            </a>
+                </a>
             </div>
         }
     </div>
-<div class="d-flex justify-content-center mt-4 pagination-custom">
-    @Html.PagedListPager(
-        Model,
-        page => Url.Action("IndexPro", new { page, sortOrder = currentSort, searchTerm = currentSearch, categoryId = currentCategoryId, categoryName = currentCategoryName }),
-        new PagedListRenderOptions
-        {
-            LiElementClasses = new[] { "page-item" },
-            PageClasses = new[] { "page-link" }
-        })
-</div>
 
-    <!-- Thông báo nếu không có sản phẩm -->
     @if (!Model.Any())
     {
-        <div class="alert alert-info text-center mt-5" role="alert">
-            <h5>Chưa có sản phẩm nào</h5>
-            <p class="mb-0">Vui lòng quay lại sau!</p>
+        <div class="text-center py-5 anim-fade-up">
+            <img src="~/images/empty-cart.png" alt="Empty" height="120" style="opacity: 0.5; filter: grayscale(1);" class="mb-4" onerror="this.style.display='none'">
+            <h4 class="text-muted fw-bold">Không tìm thấy sản phẩm nào!</h4>
+            <p class="text-muted">Vui lòng thử lại với từ khóa, danh mục hoặc bộ lọc khác.</p>
+            <a asp-action="IndexPro" class="btn btn-outline-pink mt-3 px-4">Tải lại trang</a>
         </div>
     }
 
+    @if (Model.PageCount > 1)
+    {
+        <div class="d-flex justify-content-center mt-5 mb-4 pagination-custom">
+            @Html.PagedListPager(
+                Model,
+                page => Url.Action("IndexPro", new
+                {
+                    page,
+                    sortOrder = currentSort,
+                    searchTerm = currentSearch,
+                    categoryId = currentCategoryId,
+                    categoryName = currentCategoryName,
+                    salesFilter = currentSalesFilter
+                }),
+                new PagedListRenderOptions
+                {
+                    LiElementClasses = new[] { "page-item" },
+                    PageClasses = new[] { "page-link" },
+                    MaximumPageNumbersToDisplay = 5,
+                    DisplayLinkToFirstPage = PagedListDisplayMode.Never,
+                    DisplayLinkToLastPage = PagedListDisplayMode.Never,
+                    DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+                    DisplayLinkToNextPage = PagedListDisplayMode.Always
+                })
+        </div>
+    }
 </div>
 
-<style>
-    .product-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid #e0e0e0;
-    }
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
-    }
-    .card-title {
-        font-size: 1rem;
-        font-weight: 500;
-        min-height: 2.5rem;
-    }
-
-    //chuyển trang
-    .pagination-custom ul {
-        display: flex;
-        list-style: none;
-        padding: 0;
-        gap: 6px;
-    }
-
-    .pagination-custom .page-item {
-        border-radius: 8px;
-    }
-
-    .pagination-custom .page-link {
-        color: #d63384;
-        border: 1px solid #ddd;
-        padding: 8px 14px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        background: white;
-    }
-
-    .pagination-custom .page-link:hover {
-        background: #ffb6d5;
-        color: white;
-        border-color: #ffb6d5;
-    }
-
-    .pagination-custom .active .page-link {
-    background: #ff8ec7;
-        color: white;
-    border-color: #ff8ec7;
-        font-weight: 600;
-    }
-
-    .pagination-custom .disabled .page-link {
-        color: #aaa;
-        pointer-events: none;
-    background: #ffe4ef;
-    }
-</style>
-
 <script>
-    // Prevent anchor navigation when clicking the button inside card and add quantity = 1
     function addToCart(e, productId) {
-        // stop the anchor navigation
         if (e && typeof e.stopPropagation === 'function') {
             e.preventDefault();
             e.stopPropagation();
         }
         addToCartAjax(productId, 1);
     }
+
+    document.querySelectorAll('.product-card').forEach(card => {
+        const img = card.querySelector('.object-fit-cover');
+        if (img) {
+            card.addEventListener('mouseenter', () => img.style.transform = 'scale(1.08)');
+            card.addEventListener('mouseleave', () => img.style.transform = 'scale(1)');
+        }
+    });
 </script>

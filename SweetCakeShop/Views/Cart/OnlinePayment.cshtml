@@ -1,0 +1,169 @@
+@model SweetCakeShop.Models.ViewModels.PaymentViewModel
+@{
+    ViewData["Title"] = "Thanh toán VietQR";
+    var order = Model.Order;
+    var orderId = order?.OrderId ?? 0;
+    var paymentCode = ViewBag.PaymentCode as string ?? $"DH{orderId}";
+    var paymentContent = ViewBag.PaymentContent as string ?? $"{paymentCode} thanh toan don hang";
+    var notice = ViewBag.PaymentNotice as string;
+    var qrUrl = ViewBag.QrUrl as string;
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <div class="row g-4 align-items-stretch">
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4 text-center">
+                            <h3 class="fw-bold mb-2" style="color: #d81b60;">Quét mã VietQR</h3>
+                            <p class="text-muted mb-4">Đơn hàng <strong>#@orderId</strong></p>
+
+                            @if (!string.IsNullOrWhiteSpace(qrUrl))
+                            {
+                                <img src="@qrUrl" alt="Mã QR thanh toán SePay" class="img-fluid rounded border bg-white p-2" style="max-height: 420px;" />
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">Chưa cấu hình đủ thông tin tạo mã QR.</div>
+                            }
+
+                            <div class="alert alert-info border-0 small mt-4 mb-0 text-start">
+                                Sau khi chuyển khoản đúng số tiền và nội dung, SePay sẽ tự động xác nhận đơn hàng.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4 p-md-5">
+                            <h4 class="fw-bold mb-3">Thông tin chuyển khoản</h4>
+
+                            @if (!string.IsNullOrWhiteSpace(notice))
+                            {
+                                <div class="alert alert-info border-0">
+                                    <i class="bi bi-info-circle me-2"></i>@notice
+                                </div>
+                            }
+
+                            <div class="bg-light rounded-3 p-4 mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-muted">Số tiền</span>
+                                    <span class="fs-4 fw-bold text-success">@order?.TotalPrice.ToString("N0") đ</span>
+                                </div>
+                                <hr />
+                                <div class="row g-3">
+                                    <div class="col-sm-6">
+                                        <small class="text-muted d-block">Ngân hàng</small>
+                                        <strong>@ViewBag.BankName</strong>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <small class="text-muted d-block">Chi nhánh</small>
+                                        <strong>@ViewBag.BankBranch</strong>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <small class="text-muted d-block">Số tài khoản</small>
+                                        <strong class="text-primary" id="accountNumber">@ViewBag.AccountNumber</strong>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <small class="text-muted d-block">Chủ tài khoản</small>
+                                        <strong>@ViewBag.AccountName</strong>
+                                    </div>
+                                    <div class="col-12">
+                                        <small class="text-muted d-block">Nội dung chuyển khoản</small>
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                                            <code class="fs-6 px-3 py-2 bg-white rounded border" id="paymentCode">@paymentContent</code>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="copyCodeBtn">
+                                                <i class="bi bi-clipboard me-1"></i>Sao chép mã
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning border-0 small mb-3">
+                                Vui lòng chuyển đúng số tiền và ghi chính xác nội dung <strong>@paymentContent</strong>.
+                            </div>
+
+                            <div class="alert alert-light border small mb-4" id="paymentStatusBox">
+                                Đang chờ SePay xác nhận thanh toán...
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <a asp-action="Success" asp-route-orderId="@orderId" class="btn text-white fw-bold" style="background-color: #d81b60;">
+                                    Kiểm tra đơn hàng
+                                </a>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                    Tiếp tục xem sản phẩm
+                                </a>
+                            </div>
+
+                            <form asp-action="ConfirmOnlinePayment" method="post" class="mt-3">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderId" value="@orderId" />
+                                <button type="submit" class="btn btn-link p-0 small text-muted">
+                                    Tôi đã chuyển khoản, chờ shop xác nhận thủ công
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('copyCodeBtn')?.addEventListener('click', function () {
+            var code = document.getElementById('paymentCode')?.textContent?.trim();
+            if (!code) return;
+
+            navigator.clipboard.writeText(code).then(function () {
+                var btn = document.getElementById('copyCodeBtn');
+                btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Đã sao chép';
+                setTimeout(function () {
+                    btn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Sao chép mã';
+                }, 2000);
+            });
+        });
+
+        const orderId = @orderId;
+        const statusBox = document.getElementById('paymentStatusBox');
+
+        async function checkPaymentStatus() {
+            if (!orderId) return;
+
+            try {
+                const response = await fetch(`/Cart/PaymentStatus?orderId=${orderId}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) return;
+
+                const result = await response.json();
+                if (result.isPaid && result.redirectUrl) {
+                    if (statusBox) {
+                        statusBox.className = 'alert alert-success border-0 small mb-4';
+                        statusBox.textContent = 'Thanh toán thành công. Đang chuyển sang trang xác nhận...';
+                    }
+
+                    window.location.href = result.redirectUrl;
+                    return;
+                }
+
+                if (statusBox && result.status) {
+                    statusBox.textContent = `Đang chờ thanh toán. Trạng thái hiện tại: ${result.status}`;
+                }
+            } catch {
+                if (statusBox) {
+                    statusBox.textContent = 'Đang chờ SePay xác nhận thanh toán...';
+                }
+            }
+        }
+
+        checkPaymentStatus();
+        setInterval(checkPaymentStatus, 3000);
+    </script>
+}

@@ -3,7 +3,7 @@
 @model IEnumerable<SweetCakeShop.Models.AdminProductStockViewModel>
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Số lượng bánh có thể làm";
+    ViewData["Title"] = "Quản lý Sản phẩm & Kho";
     var stt = 0;
     var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
     var json = JsonSerializer.Serialize(Model, new JsonSerializerOptions
@@ -12,31 +12,47 @@
     });
 }
 
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0 text-white">Sản phẩm & Kho bánh</h3>
+</div>
+
 @if (TempData["Success"] is string success)
 {
-    <div class="alert alert-success py-2">@success</div>
+    <div class="alert alert-success d-flex align-items-center py-2 px-3 mb-4">
+        <i class="bi bi-check-circle-fill me-2 fs-5"></i> @success
+    </div>
 }
 @if (TempData["Error"] is string error)
 {
-    <div class="alert alert-danger py-2">@error</div>
+    <div class="alert alert-danger d-flex align-items-center py-2 px-3 mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i> @error
+    </div>
 }
 
-<div class="card shadow-sm border-0 mb-3">
-    <div class="card-header bg-white">
-        <h6 class="mb-0">Thêm bánh</h6>
+<!-- Form thêm bánh -->
+<div class="card mb-4">
+    <div class="card-header border-bottom-0 pb-0">
+        <h6 class="mb-0 text-white font-playfair"><i class="bi bi-plus-circle me-2 text-primary"></i>Thêm bánh mới</h6>
     </div>
     <div class="card-body">
-        <form asp-action="CreateProduct" asp-controller="Admin" method="post" enctype="multipart/form-data" class="row g-2">
+        <form asp-action="CreateProduct" asp-controller="Admin" method="post" enctype="multipart/form-data" class="row g-3">
             @Html.AntiForgeryToken()
             <div class="col-12 col-md-3">
-                <input name="productName" class="form-control" placeholder="Tên bánh" required />
+                <label class="form-label">Tên bánh <span class="text-danger">*</span></label>
+                <input name="productName" class="form-control" placeholder="VD: Bánh Mousse Dâu..." required />
             </div>
             <div class="col-12 col-md-2">
-                <input type="number" name="price" class="form-control" min="0" step="1000" placeholder="Giá" required />
+                <label class="form-label">Giá bán (đ) <span class="text-danger">*</span></label>
+                <input type="number" name="price" class="form-control" min="0" step="1000" placeholder="VD: 55000" required />
             </div>
             <div class="col-12 col-md-2">
+                <label class="form-label">Giá vốn (đ)</label>
+                <input type="number" name="costPrice" class="form-control" min="0" step="1000" placeholder="VD: 30000" value="0" />
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Danh mục <span class="text-danger">*</span></label>
                 <select name="categoryId" class="form-select" required>
-                    <option value="">Danh mục</option>
+                    <option value="">Chọn danh mục...</option>
                     @foreach (var c in categories)
                     {
                         <option value="@c.CategoryId">@c.CategoryName</option>
@@ -44,33 +60,48 @@
                 </select>
             </div>
             <div class="col-12 col-md-3">
+                <label class="form-label">Hình ảnh đại diện</label>
                 <input type="file" name="imageFile" class="form-control" accept="image/*" />
             </div>
             <div class="col-12 col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Thêm bánh</button>
+                <label class="form-label">Giá sale (đ)</label>
+                <input type="number" name="discountPrice" class="form-control" min="0" step="1000" placeholder="Tuỳ chọn" />
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Sale từ</label>
+                <input type="datetime-local" name="discountStartAt" class="form-control" />
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label">Sale đến</label>
+                <input type="datetime-local" name="discountEndAt" class="form-control" />
+            </div>
+            <div class="col-12 col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-cloud-arrow-up me-1"></i>Thêm bánh</button>
             </div>
             <div class="col-12">
-                <input name="description" class="form-control" placeholder="Mô tả (tuỳ chọn)" />
+                <input name="description" class="form-control bg-dark border-secondary" placeholder="Nhập mô tả ngắn gọn cho sản phẩm (không bắt buộc)..." />
             </div>
         </form>
     </div>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">Kiểm tra nguyên liệu theo công thức</h5>
+<!-- Table kiểm tra kho -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-white font-playfair"><i class="bi bi-calculator me-2"></i>Tính toán nguyên liệu sản xuất</h5>
+        <span class="badge text-bg-info text-white">Tổng: @Model.Count() bánh</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle" id="product-stock-table">
                 <thead>
                     <tr>
-                        <th style="width:70px;">STT</th>
-                        <th>Bánh</th>
-                        <th style="width:170px;">Đủ nguyên liệu</th>
-                        <th style="width:220px;">Số lượng bánh làm được</th>
-                        <th style="width:170px;">Số lượng bánh làm</th>
-                        <th style="width:260px;">Thao tác</th>
+                        <th style="width:60px;" class="text-center">#</th>
+                        <th>Thông tin bánh</th>
+                        <th style="width:140px;" class="text-center">Trạng thái kho</th>
+                        <th style="width:180px;" class="text-center">Tối đa làm được</th>
+                        <th style="width:160px;">Dự định làm</th>
+                        <th class="text-end" style="width:280px; padding-right: 1.5rem;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -78,51 +109,78 @@
                     {
                         stt++;
                         <tr data-product-id="@item.ProductId">
-                            <td>@stt</td>
+                            <td class="text-center text-muted">@stt</td>
                             <td>
-                                <div class="fw-semibold">@item.ProductName</div>
-                                <small class="text-muted">
-                                    @string.Join(", ", item.Ingredients.Select(i => $"{i.IngredientName} ({i.RequiredPerCake} {i.Measurement})"))
-                                </small>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div>
+                                        <div class="fw-bold text-white mb-1" style="font-size: 0.95rem;">@item.ProductName</div>
+                                        <div class="text-muted" style="font-size: 0.8rem; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <i class="bi bi-basket2 me-1"></i>
+                                            @string.Join(", ", item.Ingredients.Select(i => $"{i.IngredientName} ({i.RequiredPerCake}{i.Measurement})"))
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
-                            <td class="enough-col">
+                            <td class="enough-col text-center">
                                 @if (item.HasEnoughIngredients)
                                 {
-                                    <span class="badge text-bg-success">@item.CanMakeCount</span>
+                                    <span class="badge text-bg-success rounded-pill px-3 py-2"><i class="bi bi-check2-circle me-1"></i>Đủ</span>
                                 }
                                 else
                                 {
-                                    <span class="badge text-bg-danger">❌</span>
+                                    <span class="badge text-bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i>Thiếu</span>
                                 }
                             </td>
-                            <td class="canmake-col"><span class="fw-semibold">@item.CanMakeCount</span></td>
-                            <td>
-                                <input type="number" class="form-control form-control-sm make-input"
-                                       min="0" step="1" value="0" data-product-id="@item.ProductId" />
+                            <td class="canmake-col text-center">
+                                <span class="fs-5 fw-bold text-info">@item.CanMakeCount</span>
                             </td>
-                            <td class="d-flex gap-1">
-                                <a asp-controller="Admin" asp-action="EditProduct" asp-route-productId="@item.ProductId"
-                                   class="btn btn-sm btn-outline-secondary">
-                                    Chỉnh sửa bánh
-                                </a>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control make-input bg-dark text-white border-secondary text-center"
+                                           min="0" step="1" value="0" data-product-id="@item.ProductId" />
+                                    <span class="input-group-text bg-dark border-secondary text-muted">cái</span>
+                                </div>
+                            </td>
+                            <td class="text-end" style="padding-right: 1.5rem;">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-controller="Admin" asp-action="EditProduct" asp-route-productId="@item.ProductId"
+                                       class="btn btn-sm btn-outline-secondary" title="Sửa thông tin bánh">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
 
-                                <a asp-controller="Admin" asp-action="EditProductRecipe" asp-route-productId="@item.ProductId"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Chỉnh sửa nguyên liệu
-                                </a>
+                                    <a asp-controller="Admin" asp-action="EditProductRecipe" asp-route-productId="@item.ProductId"
+                                       class="btn btn-sm btn-outline-info" title="Chỉnh sửa công thức">
+                                        <i class="bi bi-journal-text"></i> Công thức
+                                    </a>
 
-                                <form asp-action="DeleteProduct" asp-controller="Admin" method="post"
-                                      onsubmit="return confirm('Bạn có chắc muốn xóa bánh này?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="productId" value="@item.ProductId" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Xóa bánh</button>
-                                </form>
+                                    <a asp-controller="Admin" asp-action="ProductPriceHistory" asp-route-productId="@item.ProductId"
+                                       class="btn btn-sm btn-outline-secondary" title="Lịch sử giá">
+                                        <i class="bi bi-clock-history"></i> Giá
+                                    </a>
+
+                                    <form asp-action="DeleteProduct" asp-controller="Admin" method="post" class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa bánh này?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@item.ProductId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa bánh">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
+        
+        @if (!Model.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-box2 fs-1 d-block mb-3 opacity-50"></i>
+                <span>Chưa có sản phẩm nào. Hãy thêm mới ngay.</span>
+            </div>
+        }
     </div>
 </div>
 
@@ -170,7 +228,7 @@
             const canmakeCol = row.querySelector('.canmake-col span');
 
             if (!p.ingredients || p.ingredients.length === 0) {
-                enoughCol.innerHTML = '<span class="badge text-bg-danger">❌</span>';
+                enoughCol.innerHTML = '<span class="badge text-bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i>Thiếu</span>';
                 canmakeCol.textContent = '0';
                 continue;
             }
@@ -188,8 +246,8 @@
 
             if (!Number.isFinite(canMake) || canMake < 0) canMake = 0;
             enoughCol.innerHTML = enough
-                ? `<span class="badge text-bg-success">${canMake}</span>`
-                : '<span class="badge text-bg-danger">❌</span>';
+                ? `<span class="badge text-bg-success rounded-pill px-3 py-2"><i class="bi bi-check2-circle me-1"></i>Đủ</span>`
+                : '<span class="badge text-bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i>Thiếu</span>';
             canmakeCol.textContent = String(canMake);
         }
     }

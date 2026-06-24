@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SweetCakeShop.Models;
+using SweetCakeShop.Helpers;
 using Stripe;
 using Stripe.Checkout;
 using System.Collections.Generic;
@@ -38,6 +39,18 @@ namespace SweetCakeShop.Services
         // successUrl and cancelUrl are passed from the controller (built with Url.Action).
         public async Task<PaymentResult> CreatePaymentAsync(Order order, string successUrl, string cancelUrl)
         {
+            if (!StripeOptions.IsConfigured(_configuration))
+            {
+                var code = StripeOptions.GenerateBankTransferCode(order.OrderId);
+                return new PaymentResult
+                {
+                    Success = false,
+                    PaymentCode = code,
+                    Amount = order.TotalPrice,
+                    Message = "Stripe chưa được cấu hình."
+                };
+            }
+
             try
             {
                 // Amount in smallest currency unit (VND used as whole integer here)
@@ -91,9 +104,6 @@ namespace SweetCakeShop.Services
                 // fallback: local bank transfer code so UI remains usable
                 var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
                 var paymentCode = $"BANK-{order.OrderId}-{timestamp}";
-                var message =
-                    $"Không thể kết nối tới Stripe: {ex.Message}\n" +
-                    $"Bạn có thể chuyển khoản thủ công. Mã: {paymentCode}";
 
                 return new PaymentResult
                 {
@@ -101,7 +111,7 @@ namespace SweetCakeShop.Services
                     PaymentCode = paymentCode,
                     PaymentUrl = string.Empty,
                     Amount = order.TotalPrice,
-                    Message = message
+                    Message = "Không thể kết nối cổng thanh toán Stripe."
                 };
             }
         }

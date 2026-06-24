@@ -10,37 +10,54 @@ namespace SweetCakeShop.Data
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
-            var adminRoleName = nameof(Roles.Admin); // "Admin"
-
-            if (!await roleManager.RoleExistsAsync(adminRoleName))
+            foreach (var roleName in Enum.GetNames<Roles>())
             {
-                await roleManager.CreateAsync(new IdentityRole(adminRoleName));
-            }
-
-            const string adminEmail = "admin@gmail.com";
-            const string adminPassword = "Admin@123";
-
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
-            if (adminUser is null)
-            {
-                adminUser = new IdentityUser
+                if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    EmailConfirmed = true
-                };
-
-                var createResult = await userManager.CreateAsync(adminUser, adminPassword);
-                if (!createResult.Succeeded)
-                {
-                    var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
-                    throw new InvalidOperationException($"Admin user seed failed: {errors}");
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
                 }
             }
 
-            if (!await userManager.IsInRoleAsync(adminUser, adminRoleName))
+            await EnsureUserInRoleAsync(
+                userManager,
+                email: "admin@gmail.com",
+                password: "Admin@123",
+                roleName: nameof(Roles.Admin));
+
+            await EnsureUserInRoleAsync(
+                userManager,
+                email: "shipper@gmail.com",
+                password: "Shipper@123",
+                roleName: nameof(Roles.Shipper));
+        }
+
+        private static async Task EnsureUserInRoleAsync(
+            UserManager<IdentityUser> userManager,
+            string email,
+            string password,
+            string roleName)
+        {
+            var user = await userManager.FindByEmailAsync(email);
+            if (user is null)
             {
-                await userManager.AddToRoleAsync(adminUser, adminRoleName);
+                user = new IdentityUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+
+                var createResult = await userManager.CreateAsync(user, password);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"{roleName} user seed failed: {errors}");
+                }
+            }
+
+            if (!await userManager.IsInRoleAsync(user, roleName))
+            {
+                await userManager.AddToRoleAsync(user, roleName);
             }
         }
     }

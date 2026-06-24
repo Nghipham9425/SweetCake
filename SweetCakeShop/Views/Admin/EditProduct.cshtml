@@ -4,11 +4,16 @@
     Layout = "_AdminLayout";
     ViewData["Title"] = "Chỉnh sửa bánh";
     var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
+    var discountStartValue = Model.DiscountStartAt?.ToString("yyyy-MM-ddTHH:mm");
+    var discountEndValue = Model.DiscountEndAt?.ToString("yyyy-MM-ddTHH:mm");
 }
 
 <div class="card shadow-sm border-0">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Chỉnh sửa bánh</h5>
+        <a asp-action="ProductPriceHistory" asp-controller="Admin" asp-route-productId="@Model.ProductId" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-clock-history me-1"></i>Lịch sử giá
+        </a>
     </div>
     <div class="card-body">
         <form asp-action="EditProduct" asp-controller="Admin" method="post" enctype="multipart/form-data" class="row g-3">
@@ -21,11 +26,31 @@
             </div>
 
             <div class="col-12 col-md-3">
-                <label class="form-label">Giá</label>
+                <label class="form-label">Giá bán</label>
                 <input type="number" name="price" value="@Model.Price" class="form-control" min="0" step="1000" required />
             </div>
 
             <div class="col-12 col-md-3">
+                <label class="form-label">Giá vốn</label>
+                <input type="number" name="costPrice" value="@Model.CostPrice" class="form-control" min="0" step="1000" />
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label">Giá sale</label>
+                <input type="number" name="discountPrice" value="@Model.DiscountPrice" class="form-control" min="0" step="1000" placeholder="Để trống nếu không sale" />
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label">Sale từ</label>
+                <input type="datetime-local" name="discountStartAt" value="@discountStartValue" class="form-control" />
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label">Sale đến</label>
+                <input type="datetime-local" name="discountEndAt" value="@discountEndValue" class="form-control" />
+            </div>
+
+            <div class="col-12 col-md-4">
                 <label class="form-label">Danh mục</label>
                 <select name="categoryId" class="form-select" required>
                     @foreach (var c in categories)
@@ -37,7 +62,7 @@
                 </select>
             </div>
 
-            <div class="col-12">
+            <div class="col-12 col-md-8">
                 <label class="form-label">Mô tả</label>
                 <input name="description" value="@Model.Description" class="form-control" />
             </div>

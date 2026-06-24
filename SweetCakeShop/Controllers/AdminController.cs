@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SweetCakeShop.Constants;
 using SweetCakeShop.Data;
 using SweetCakeShop.Models;
-
+using SweetCakeShop.Services;
 namespace SweetCakeShop.Controllers
 {
     [Authorize(Roles = nameof(Roles.Admin))]
@@ -12,17 +12,19 @@ namespace SweetCakeShop.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly IOrderInventoryService _inventoryService;
 
-        public AdminController(ApplicationDbContext context, IWebHostEnvironment env)
+        public AdminController(
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IOrderInventoryService inventoryService)
         {
             _context = context;
             _env = env;
+            _inventoryService = inventoryService;
         }
 
-        public IActionResult Dashboard()
-        {
-            return View();
-        }
+        public IActionResult Dashboard() => RedirectToAction("Index", "AdminDashboard");
 
         [HttpGet]
         public async Task<IActionResult> TopSellingProducts()
@@ -31,7 +33,7 @@ namespace SweetCakeShop.Controllers
                 (from od in _context.OrderDetails.AsNoTracking()
                  join o in _context.Orders.AsNoTracking() on od.OrderId equals o.OrderId
                  join p in _context.Products.AsNoTracking() on od.ProductId equals p.ProductId
-                 where o.Status == "Confirmed" || o.Status == "confirmed"
+                 where o.ConfirmedAt != null && OrderStatuses.RevenueEligibleStatuses.Contains(o.Status)
                  group new { od, o, p } by new { od.ProductId, p.ProductName } into g
                  orderby g.Sum(x => x.od.Quantity) descending, g.Key.ProductName
                  select new AdminTopSellingProductViewModel
@@ -83,15 +85,8 @@ namespace SweetCakeShop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateOrderStatus(int orderId, string status)
+        public async Task<IActionResult> TransitionOrderStatus(int orderId, string toStatus)
         {
-            var validStatuses = new[] { "Pending", "Confirmed", "Shipped", "Delivered", "Cancelled" };
-            if (!validStatuses.Contains(status))
-            {
-                TempData["Error"] = "Trạng thái không hợp lệ";
-                return RedirectToAction(nameof(Orders));
-            }
-
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId);
             if (order == null)
             {
@@ -99,10 +94,32 @@ namespace SweetCakeShop.Controllers
                 return RedirectToAction(nameof(Orders));
             }
 
-            order.Status = status;
-            await _context.SaveChangesAsync();
+            if (!OrderStatuses.CanAdminTransition(order.Status, toStatus))
+            {
+                TempData["Error"] = $"Không thể chuyển đơn #{order.OrderId} từ {OrderStatuses.GetDisplayName(order.Status)} sang {OrderStatuses.GetDisplayName(toStatus)}";
+                return RedirectToAction(nameof(Orders));
+            }
 
-            TempData["Success"] = $"Đã cập nhật trạng thái đơn #{order.OrderId}";
+            if (string.Equals(toStatus, OrderStatuses.Confirmed, StringComparison.OrdinalIgnoreCase))
+            {
+                var stockCheck = await _inventoryService.ConfirmAndDeductAsync(order);
+                if (!stockCheck.IsAvailable)
+                {
+                    TempData["Error"] = stockCheck.Message;
+                    return RedirectToAction(nameof(Orders));
+                }
+            }
+            else if (string.Equals(toStatus, OrderStatuses.Cancelled, StringComparison.OrdinalIgnoreCase))
+            {
+                await _inventoryService.CancelAndRestockAsync(order);
+            }
+            else
+            {
+                OrderStatuses.ApplyStatus(order, toStatus);
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["Success"] = $"Đã chuyển đơn #{order.OrderId} sang {OrderStatuses.GetDisplayName(order.Status)}";
             return RedirectToAction(nameof(Orders));
         }
 
@@ -146,100 +163,14 @@ namespace SweetCakeShop.Controllers
                 return RedirectToAction(nameof(Orders));
             }
 
-            if (!order.OrderDetails.Any())
+            var stockCheck = await _inventoryService.ConfirmAndDeductAsync(order);
+            if (!stockCheck.IsAvailable)
             {
-                TempData["Warning"] = "Không đủ nguyên liệu";
+                TempData["Warning"] = stockCheck.Message;
                 return RedirectToAction(nameof(OrderDetails), new { orderId });
             }
 
-            // Không làm lại cho đơn đã xác nhận/giao/hủy
-            if (order.Status == "Confirmed" || order.Status == "Shipped" || order.Status == "Delivered" || order.Status == "Cancelled")
-            {
-                TempData["Error"] = "Đơn hàng không ở trạng thái có thể làm bánh";
-                return RedirectToAction(nameof(OrderDetails), new { orderId });
-            }
-
-            var productIds = order.OrderDetails
-                .Select(od => od.ProductId)
-                .Distinct()
-                .ToList();
-
-            var recipes = await _context.Recipes
-                .Where(r => productIds.Contains(r.ProductID))
-                .ToListAsync();
-
-            var recipesByProduct = recipes
-                .GroupBy(r => r.ProductID)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            // Tính tổng nguyên liệu cần theo từng ingredient
-            var requiredByIngredient = new Dictionary<int, decimal>();
-
-            foreach (var detail in order.OrderDetails)
-            {
-                if (!recipesByProduct.TryGetValue(detail.ProductId, out var productRecipe) || productRecipe.Count == 0)
-                {
-                    TempData["Warning"] = "Không đủ nguyên liệu";
-                    return RedirectToAction(nameof(OrderDetails), new { orderId });
-                }
-
-                foreach (var recipe in productRecipe)
-                {
-                    var required = recipe.Quantity * detail.Quantity;
-
-                    if (requiredByIngredient.ContainsKey(recipe.IngredientsID))
-                        requiredByIngredient[recipe.IngredientsID] += required;
-                    else
-                        requiredByIngredient[recipe.IngredientsID] = required;
-                }
-            }
-
-            var ingredientIds = requiredByIngredient.Keys.ToList();
-            var ingredients = await _context.Ingredients
-                .Where(i => ingredientIds.Contains(i.IngredientID))
-                .ToListAsync();
-
-            // Có công thức nhưng thiếu dòng nguyên liệu tương ứng
-            if (ingredients.Count != ingredientIds.Count)
-            {
-                TempData["Warning"] = "Không đủ nguyên liệu";
-                return RedirectToAction(nameof(OrderDetails), new { orderId });
-            }
-
-            // Kiểm tra tồn kho đủ hay không
-            foreach (var ingredient in ingredients)
-            {
-                var required = requiredByIngredient[ingredient.IngredientID];
-                if (ingredient.Quantity < required)
-                {
-                    TempData["Warning"] = "Không đủ nguyên liệu";
-                    return RedirectToAction(nameof(OrderDetails), new { orderId });
-                }
-            }
-
-            // Trừ kho + cập nhật trạng thái
-            await using var tx = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                foreach (var ingredient in ingredients)
-                {
-                    var required = requiredByIngredient[ingredient.IngredientID];
-                    ingredient.Quantity = Math.Round(ingredient.Quantity - required, 2, MidpointRounding.AwayFromZero);
-                }
-
-                order.Status = "Confirmed";
-
-                await _context.SaveChangesAsync();
-                await tx.CommitAsync();
-
-                TempData["Success"] = $"Đã làm bánh cho đơn #{order.OrderId} và cập nhật trạng thái Confirmed";
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                TempData["Error"] = "Có lỗi xảy ra khi làm bánh";
-            }
-
+            TempData["Success"] = $"Đã làm bánh cho đơn #{order.OrderId} và cập nhật trạng thái Confirmed";
             return RedirectToAction(nameof(OrderDetails), new { orderId });
         }
         #endregion
@@ -675,6 +606,10 @@ namespace SweetCakeShop.Controllers
         public async Task<IActionResult> CreateProduct(
             string productName,
             decimal price,
+            decimal costPrice,
+            decimal? discountPrice,
+            DateTime? discountStartAt,
+            DateTime? discountEndAt,
             int categoryId,
             string? description,
             IFormFile? imageFile)
@@ -691,6 +626,24 @@ namespace SweetCakeShop.Controllers
                 return RedirectToAction(nameof(Products));
             }
 
+            if (costPrice < 0)
+            {
+                TempData["Error"] = "Giá vốn phải >= 0";
+                return RedirectToAction(nameof(Products));
+            }
+
+            if (discountPrice.HasValue && (discountPrice.Value <= 0 || discountPrice.Value >= price))
+            {
+                TempData["Error"] = "Giá giảm phải lớn hơn 0 và nhỏ hơn giá bán";
+                return RedirectToAction(nameof(Products));
+            }
+
+            if (discountStartAt.HasValue && discountEndAt.HasValue && discountEndAt.Value < discountStartAt.Value)
+            {
+                TempData["Error"] = "Ngày kết thúc giảm giá phải sau ngày bắt đầu";
+                return RedirectToAction(nameof(Products));
+            }
+
             var categoryExists = await _context.Categories.AnyAsync(c => c.CategoryId == categoryId);
             if (!categoryExists)
             {
@@ -704,6 +657,10 @@ namespace SweetCakeShop.Controllers
             {
                 ProductName = productName.Trim(),
                 Price = price,
+                CostPrice = costPrice,
+                DiscountPrice = discountPrice,
+                DiscountStartAt = discountStartAt,
+                DiscountEndAt = discountEndAt,
                 CategoryId = categoryId,
                 Description = description?.Trim(),
                 Image = imagePath
@@ -738,6 +695,10 @@ namespace SweetCakeShop.Controllers
             int productId,
             string productName,
             decimal price,
+            decimal costPrice,
+            decimal? discountPrice,
+            DateTime? discountStartAt,
+            DateTime? discountEndAt,
             int categoryId,
             string? description,
             IFormFile? imageFile)
@@ -761,6 +722,24 @@ namespace SweetCakeShop.Controllers
                 return RedirectToAction(nameof(EditProduct), new { productId });
             }
 
+            if (costPrice < 0)
+            {
+                TempData["Error"] = "Giá vốn phải >= 0";
+                return RedirectToAction(nameof(EditProduct), new { productId });
+            }
+
+            if (discountPrice.HasValue && (discountPrice.Value <= 0 || discountPrice.Value >= price))
+            {
+                TempData["Error"] = "Giá giảm phải lớn hơn 0 và nhỏ hơn giá bán";
+                return RedirectToAction(nameof(EditProduct), new { productId });
+            }
+
+            if (discountStartAt.HasValue && discountEndAt.HasValue && discountEndAt.Value < discountStartAt.Value)
+            {
+                TempData["Error"] = "Ngày kết thúc giảm giá phải sau ngày bắt đầu";
+                return RedirectToAction(nameof(EditProduct), new { productId });
+            }
+
             var categoryExists = await _context.Categories.AnyAsync(c => c.CategoryId == categoryId);
             if (!categoryExists)
             {
@@ -773,14 +752,67 @@ namespace SweetCakeShop.Controllers
                 product.Image = await SaveProductImageAsync(imageFile);
             }
 
+            var priceChanged = product.Price != price
+                || product.CostPrice != costPrice
+                || product.DiscountPrice != discountPrice
+                || product.DiscountStartAt != discountStartAt
+                || product.DiscountEndAt != discountEndAt;
+
+            if (priceChanged)
+            {
+                _context.ProductPriceHistories.Add(new ProductPriceHistory
+                {
+                    ProductId = product.ProductId,
+                    OldPrice = product.Price,
+                    NewPrice = price,
+                    OldCostPrice = product.CostPrice,
+                    NewCostPrice = costPrice,
+                    OldDiscountPrice = product.DiscountPrice,
+                    NewDiscountPrice = discountPrice,
+                    OldDiscountStartAt = product.DiscountStartAt,
+                    NewDiscountStartAt = discountStartAt,
+                    OldDiscountEndAt = product.DiscountEndAt,
+                    NewDiscountEndAt = discountEndAt,
+                    ChangedAt = DateTime.UtcNow,
+                    ChangedBy = User.Identity?.Name
+                });
+            }
+
             product.ProductName = productName.Trim();
             product.Price = price;
+            product.CostPrice = costPrice;
+            product.DiscountPrice = discountPrice;
+            product.DiscountStartAt = discountStartAt;
+            product.DiscountEndAt = discountEndAt;
             product.CategoryId = categoryId;
             product.Description = description?.Trim();
 
             await _context.SaveChangesAsync();
             TempData["Success"] = "Cập nhật bánh thành công";
             return RedirectToAction(nameof(Products));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ProductPriceHistory(int productId)
+        {
+            var product = await _context.Products
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.ProductId == productId);
+
+            if (product == null)
+            {
+                TempData["Error"] = "Không tìm thấy bánh";
+                return RedirectToAction(nameof(Products));
+            }
+
+            var history = await _context.ProductPriceHistories
+                .AsNoTracking()
+                .Where(h => h.ProductId == productId)
+                .OrderByDescending(h => h.ChangedAt)
+                .ToListAsync();
+
+            ViewBag.Product = product;
+            return View(history);
         }
 
         [HttpPost]

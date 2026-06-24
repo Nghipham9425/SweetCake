@@ -1,0 +1,75 @@
+@model IEnumerable<SweetCakeShop.Models.ProductPriceHistory>
+@{
+    Layout = "_AdminLayout";
+    var product = ViewBag.Product as SweetCakeShop.Models.Product;
+    ViewData["Title"] = "Lịch sử giá";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0">Lịch sử giá</h5>
+            <div class="text-muted small">@product?.ProductName</div>
+        </div>
+        <a asp-action="Products" asp-controller="Admin" class="btn btn-outline-secondary btn-sm">Quay lại</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Người sửa</th>
+                        <th>Giá bán</th>
+                        <th>Giá vốn</th>
+                        <th>Giá sale</th>
+                        <th>Thời gian sale</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.ChangedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.ChangedBy) ? "System" : item.ChangedBy)</td>
+                            <td>
+                                <span class="text-muted">@item.OldPrice.ToString("N0")</span>
+                                <i class="bi bi-arrow-right mx-1"></i>
+                                <strong>@item.NewPrice.ToString("N0")</strong>
+                            </td>
+                            <td>
+                                <span class="text-muted">@item.OldCostPrice.ToString("N0")</span>
+                                <i class="bi bi-arrow-right mx-1"></i>
+                                <strong>@item.NewCostPrice.ToString("N0")</strong>
+                            </td>
+                            <td>
+                                <span class="text-muted">@(item.OldDiscountPrice?.ToString("N0") ?? "-")</span>
+                                <i class="bi bi-arrow-right mx-1"></i>
+                                <strong>@(item.NewDiscountPrice?.ToString("N0") ?? "-")</strong>
+                            </td>
+                            <td class="small">
+                                <div>
+                                    <span class="text-muted">Cũ:</span>
+                                    @(item.OldDiscountStartAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")
+                                    -
+                                    @(item.OldDiscountEndAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")
+                                </div>
+                                <div>
+                                    <span class="text-muted">Mới:</span>
+                                    @(item.NewDiscountStartAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")
+                                    -
+                                    @(item.NewDiscountEndAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center text-muted py-4">Chưa có lịch sử thay đổi giá.</div>
+        }
+    </div>
+</div>

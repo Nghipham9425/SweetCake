@@ -17,8 +17,10 @@ namespace SweetCakeShop.Models
         public bool IsGuest { get; set; } = true;
 
         public DateTime OrderDate { get; set; } = DateTime.Now;
+        public DateTime? ConfirmedAt { get; set; }
         public decimal TotalPrice { get; set; }
         public string Status { get; set; } = "Pending";     // Pending, Confirmed, Shipped, Delivered, Cancelled
+        public bool InventoryDeducted { get; set; }
 
         public IdentityUser? User { get; set; }           // nếu dùng Identity
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

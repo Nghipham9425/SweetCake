@@ -1,0 +1,142 @@
+@model SweetCakeShop.Models.ViewModels.CustomerBehaviorDashboardViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Truy vết hành vi khách hàng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">Truy vết hành vi khách hàng</h4>
+        <div class="text-muted">Theo dõi sản phẩm khách hay xem và hay thêm vào giỏ.</div>
+    </div>
+    <a asp-controller="AdminDashboard" asp-action="Index" class="btn btn-outline-secondary btn-sm">Dashboard</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Sản phẩm được xem nhiều</div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-end">Lượt xem</th>
+                            <th class="text-end">Gần nhất</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.ViewedProducts)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId" class="text-decoration-none">
+                                    @item.ProductName
+                                </a>
+                            </td>
+                            <td class="text-end fw-semibold">@item.EventCount</td>
+                            <td class="text-end small text-muted">@item.LastSeenAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+                @if (!Model.ViewedProducts.Any())
+                {
+                    <div class="text-muted text-center py-4">Chưa có lượt xem sản phẩm.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold">Sản phẩm được thêm vào giỏ nhiều</div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-end">Số lần</th>
+                            <th class="text-end">Tổng SL</th>
+                            <th class="text-end">Gần nhất</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.AddedToCartProducts)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId" class="text-decoration-none">
+                                    @item.ProductName
+                                </a>
+                            </td>
+                            <td class="text-end fw-semibold">@item.EventCount</td>
+                            <td class="text-end">@item.TotalQuantity</td>
+                            <td class="text-end small text-muted">@item.LastSeenAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+                @if (!Model.AddedToCartProducts.Any())
+                {
+                    <div class="text-muted text-center py-4">Chưa có lượt thêm giỏ.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white fw-semibold">Log hành vi mới nhất</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Hành vi</th>
+                        <th>Sản phẩm</th>
+                        <th class="text-end">SL</th>
+                        <th>Khách</th>
+                        <th>Trang</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.RecentEvents)
+                {
+                    <tr>
+                        <td class="small text-muted">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (item.EventType == SweetCakeShop.Services.CustomerBehaviorService.ViewProduct)
+                            {
+                                <span class="badge text-bg-info">Xem sản phẩm</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-success">Thêm giỏ</span>
+                            }
+                        </td>
+                        <td>@item.ProductName</td>
+                        <td class="text-end">@item.Quantity</td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(item.CustomerEmail))
+                            {
+                                <span>@item.CustomerEmail</span>
+                            }
+                            else
+                            {
+                                <code>@item.CustomerKey</code>
+                            }
+                        </td>
+                        <td class="small text-truncate" style="max-width: 260px;">@item.PageUrl</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        @if (!Model.RecentEvents.Any())
+        {
+            <div class="text-muted text-center py-4">Chưa có dữ liệu hành vi.</div>
+        }
+    </div>
+</div>

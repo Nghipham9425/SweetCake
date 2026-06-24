@@ -1,5 +1,83 @@
-﻿@{
+@model SweetCakeShop.Models.ViewModels.RevenueStatisticsViewModel
+@{
     Layout = "_AdminLayout";
+    ViewData["Title"] = "Tổng quan kinh doanh";
 }
 
-<h2>Welcome...</h2>
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h3 class="mb-1 text-white">Tổng quan kinh doanh</h3>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">Cập nhật doanh thu từ các đơn hàng đã được <strong>xác nhận/hoàn thành</strong>.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-success py-2 px-3">
+            <span class="spinner-grow spinner-grow-sm me-1" role="status" aria-hidden="true" style="width: 0.5rem; height: 0.5rem;"></span> Live
+        </span>
+        <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
+            <i class="bi bi-arrow-clockwise"></i> Cập nhật
+        </button>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card stat-card pink">
+            <div class="card-body position-relative">
+                <i class="bi bi-wallet2 stat-icon"></i>
+                <div class="text-muted">Doanh thu hôm nay</div>
+                <div class="display-6">@Model.TodayRevenue.ToString("N0") đ</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card stat-card purple">
+            <div class="card-body position-relative">
+                <i class="bi bi-calendar2-week stat-icon"></i>
+                <div class="text-muted">Doanh thu tuần này</div>
+                <div class="display-6">@Model.WeeklyRevenue.ToString("N0") đ</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card stat-card blue">
+            <div class="card-body position-relative">
+                <i class="bi bi-calendar2-month stat-icon"></i>
+                <div class="text-muted">Doanh thu tháng này</div>
+                <div class="display-6">@Model.MonthlyRevenue.ToString("N0") đ</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card stat-card green">
+            <div class="card-body position-relative">
+                <i class="bi bi-graph-up stat-icon"></i>
+                <div class="text-muted">Doanh thu năm nay</div>
+                <div class="display-6">@Model.YearlyRevenue.ToString("N0") đ</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card stat-card blue">
+            <div class="card-body position-relative">
+                <i class="bi bi-bag-check stat-icon"></i>
+                <div class="text-muted">Tổng số đơn hoàn thành</div>
+                <div class="display-6">@Model.TotalOrders</div>
+                <div class="text-muted mt-2" style="font-size: 0.75rem; text-transform: none;">Đơn đã giao hoặc xác nhận</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card stat-card pink">
+            <div class="card-body position-relative">
+                <i class="bi bi-receipt stat-icon"></i>
+                <div class="text-muted">Giá trị đơn trung bình</div>
+                <div class="display-6 text-danger" style="color: #F87171!important;">@Model.AverageOrderValue.ToString("N0") đ</div>
+            </div>
+        </div>
+    </div>
+</div>

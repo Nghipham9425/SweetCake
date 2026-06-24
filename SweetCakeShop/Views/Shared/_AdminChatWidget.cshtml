@@ -1,0 +1,51 @@
+<button type="button" class="ai-chat-fab ai-chat-fab--admin" id="adminChatFab" title="Trợ lý AI Admin" aria-label="Mở trợ lý AI Admin">
+    <i class="bi bi-stars"></i>
+</button>
+
+<div class="ai-chat-panel" id="adminChatPanel">
+    <div class="ai-chat-header ai-chat-header--admin d-flex justify-content-between align-items-center" id="adminChatHeader" title="Kéo để di chuyển khung chat">
+        <div>
+            <div class="fw-semibold">SweetCakeShop AI ✨</div>
+            <small class="opacity-75">Phân tích kinh doanh thông minh</small>
+        </div>
+        <button type="button" class="btn-close btn-close-white btn-sm" id="adminChatClose" aria-label="Đóng chat"></button>
+    </div>
+    <div class="ai-chat-messages" id="adminChatMessages">
+        <div class="ai-msg bot">
+            <div class="small text-muted mb-1">Trợ lý</div>
+            <div class="bubble">Chào admin! Hỏi em về doanh thu, đơn hàng, sản phẩm bán chạy, tồn kho — em trả lời bằng tiếng Việt tự nhiên nhé.</div>
+        </div>
+    </div>
+    <div class="ai-chat-quick-replies" id="adminChatQuickReplies"></div>
+    <div class="ai-chat-input-area">
+        <input type="text" id="adminChatInput" class="form-control form-control-sm rounded-pill flex-grow-1" maxlength="2000"
+               placeholder="VD: Hôm nay bán được bao nhiêu? Bánh nào bán chạy?" autocomplete="off" />
+        <button type="button" class="btn btn-sm rounded-pill shadow-sm" id="adminChatSend" aria-label="Gửi tin nhắn">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </div>
+</div>
+
+<script src="~/js/ai-chat.js" asp-append-version="true"></script>
+<script>
+    SweetCakeAiChat({
+        fabId: 'adminChatFab',
+        panelId: 'adminChatPanel',
+        headerId: 'adminChatHeader',
+        closeId: 'adminChatClose',
+        inputId: 'adminChatInput',
+        sendId: 'adminChatSend',
+        messagesId: 'adminChatMessages',
+        quickRepliesId: 'adminChatQuickReplies',
+        sendUrl: '/api/Chat/admin',
+        useAdminPayload: true,
+        draggable: true,
+        typingId: 'adminTypingIndicator',
+        defaultQuickReplies: [
+            'Doanh thu hôm nay?',
+            'Bánh bán chạy nhất?',
+            'Tồn kho thấp?',
+            'Có bao nhiêu đơn mới?'
+        ]
+    });
+</script>

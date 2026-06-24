@@ -1,135 +1,69 @@
+@using SweetCakeShop.Helpers
 @model SweetCakeShop.Models.ViewModels.HomeViewModel
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="container-fluid px-lg-5 mt-4">
-    <div id="bannerCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000" style="max-height: 400px;">
-
-        <div class="carousel-inner rounded">
-
+<!-- Hero Carousel — hiển thị trọn banner, không crop -->
+<div class="container mt-4 mb-4 hero-banner-wrap anim-fade-up">
+    <div id="bannerCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel" data-bs-interval="3500">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="2"></button>
+        </div>
+        
+        <div class="carousel-inner">
             <div class="carousel-item active">
-                <img src="~/images/banner1.png" class="d-block w-100 rounded" style="max-height: 400px; width: 100%; object-fit: contain;" />
+                <img src="~/images/banner1.png" class="d-block w-100" alt="Banner 1" />
             </div>
-
             <div class="carousel-item">
-                <img src="~/images/banner2.png" class="d-block w-100 rounded" style="max-height: 400px; width: 100%; object-fit: contain;" />
+                <img src="~/images/banner2.png" class="d-block w-100" alt="Banner 2" />
             </div>
-
             <div class="carousel-item">
-                <img src="~/images/banner3.png" class="d-block w-100 rounded" style="max-height: 400px; width: 100%; object-fit: contain;" />
+                <img src="~/images/banner3.png" class="d-block w-100" alt="Banner 3" />
             </div>
-
         </div>
 
-        <button class="carousel-control-prev"
-                type="button"
-                data-bs-target="#bannerCarousel"
-                data-bs-slide="prev">
-
+        <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon"></span>
-
+            <span class="visually-hidden">Previous</span>
         </button>
-
-        <button class="carousel-control-next"
-                type="button"
-                data-bs-target="#bannerCarousel"
-                data-bs-slide="next">
-
+        <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
             <span class="carousel-control-next-icon"></span>
-
+            <span class="visually-hidden">Next</span>
         </button>
-
     </div>
 </div>
 
-
-<div class="container-fluid px-lg-5 mt-5">
-    <h3 class="mb-4 fw-bold">Danh mục sản phẩm</h3>
-
-    <div class="row g-3">
-
-        <a asp-controller="Products" asp-action="IndexPro" asp-route-categoryName="Bánh kem" class="col-6 col-md-4 col-lg-2 text-decoration-none">
-            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
-                <img src="~/images/cate_1.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
-                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
-                    <h5 class="text-white fw-bold text-center px-2">Bánh kem</h5>
-                </div>
-            </div>
-        </a>
-
-        <a asp-controller="Products" asp-action="IndexPro" asp-route-categoryName="Bánh bông lan" class="col-6 col-md-4 col-lg-2 text-decoration-none">
-            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
-                <img src="~/images/cate_2.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
-                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
-                    <h5 class="text-white fw-bold text-center px-2">Bánh bông lan</h5>
-                </div>
-            </div>
-        </a>
-
-        <a asp-controller="Products" asp-action="IndexPro" asp-route-categoryName="Bánh quy" class="col-6 col-md-4 col-lg-2 text-decoration-none">
-            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
-                <img src="~/images/cate_3.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
-                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
-                    <h5 class="text-white fw-bold text-center px-2">Bánh quy</h5>
-                </div>
-            </div>
-        </a>
-
-        <a asp-controller="Products" asp-action="IndexPro" asp-route-categoryName="Bánh mì" class="col-6 col-md-4 col-lg-2 text-decoration-none">
-            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
-                <img src="~/images/cate_4.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
-                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
-                    <h5 class="text-white fw-bold text-center px-2">Bánh mì</h5>
-                </div>
-            </div>
-        </a>
-
-        <a asp-controller="Products" asp-action="IndexPro" asp-route-categoryName="Bánh mousse" class="col-6 col-md-4 col-lg-2 text-decoration-none">
-            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
-                <img src="~/images/cate_5.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
-                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
-                    <h5 class="text-white fw-bold text-center px-2">Bánh mousse</h5>
-                </div>
-            </div>
-        </a>
-
-        <a asp-controller="Products" asp-action="IndexPro" asp-route-categoryName="Tiramisu" class="col-6 col-md-4 col-lg-2 text-decoration-none">
-            <div class="category-card position-relative overflow-hidden rounded shadow-sm">
-                <img src="~/images/cate_6.jpg" class="w-100" style="height: 250px; object-fit: cover;" />
-                <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-3">
-                    <h5 class="text-white fw-bold text-center px-2">Tiramisu</h5>
-                </div>
-            </div>
-        </a>
-
+<!-- Khám phá danh mục -->
+<div class="container my-5 pb-4 anim-fade-up" style="animation-delay: 0.1s;">
+    <div class="text-center mb-5">
+        <h3 class="section-title section-title-center">Danh mục nổi bật</h3>
+        <p class="text-muted mt-2">Khám phá thế giới bánh ngọt ngào được chế tác thủ công</p>
     </div>
-</div>
 
-
-<div class="container-fluid px-lg-5 mt-5">
-    <h3 class="mb-4 fw-bold text-center">Sản phẩm nổi bật</h3>
-
-    <div class="row g-4 justify-content-center">
-        @foreach (var product in Model.FeaturedProducts)
+    <div class="row g-4">
+        @{
+            var categories = new[]
+            {
+                new { Name = "Bánh kem", Img = "cate_1.jpg" },
+                new { Name = "Bánh bông lan", Img = "cate_2.jpg" },
+                new { Name = "Bánh quy", Img = "cate_3.jpg" },
+                new { Name = "Bánh mì", Img = "cate_4.jpg" },
+                new { Name = "Bánh mousse", Img = "cate_5.jpg" },
+                new { Name = "Tiramisu", Img = "cate_6.jpg" }
+            };
+        }
+        @foreach (var cat in categories)
         {
             <div class="col-6 col-md-4 col-lg-2">
-                <a class="text-decoration-none text-dark" asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId">
-                    <div class="card h-100 shadow-sm featured-product-card">
-                        <div class="featured-product-image">
-                            @if (!string.IsNullOrEmpty(product.Image))
-                            {
-                                <img src="@product.Image" class="card-img-top" alt="@product.ProductName">
-                            }
-                            else
-                            {
-                                <img src="~/images/no-image.png" class="card-img-top" alt="No Image">
-                            }
-                        </div>
-                        <div class="card-body text-center">
-                            <h6 class="card-title mb-2">@product.ProductName</h6>
-                            <p class="mb-0 text-danger fw-bold">@product.Price.ToString("N0") đ</p>
+                <a asp-controller="Products" asp-action="IndexPro" asp-route-categoryName="@cat.Name" class="category-card">
+                    <div class="position-relative">
+                        <img src="~/images/@cat.Img" alt="@cat.Name" />
+                        <div class="category-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end justify-content-center pb-4">
+                            <h5 class="text-white mb-0 px-2 text-center">@cat.Name</h5>
                         </div>
                     </div>
                 </a>
@@ -138,70 +72,141 @@
     </div>
 </div>
 
-<div class="container-fluid px-0 mt-5">
+<!-- Sản phẩm nổi bật -->
+<div class="container my-5 pb-4 anim-fade-up" style="animation-delay: 0.2s;">
+    <div class="text-center mb-5">
+        <h3 class="section-title section-title-center">Sản phẩm bán chạy</h3>
+        <p class="text-muted mt-2">Những tuyệt tác ngọt ngào được yêu thích nhất</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        @foreach (var product in Model.FeaturedProducts)
+        {
+            var effectivePrice = ProductPricingHelper.GetEffectivePrice(product);
+            var hasDiscount = ProductPricingHelper.HasActiveDiscount(product);
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <a class="product-card" asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId">
+                    <div class="card-img-wrapper overflow-hidden position-relative" style="height: 240px;">
+                        @if (!string.IsNullOrEmpty(product.Image))
+                        {
+                            <img src="@product.Image" class="w-100 h-100 object-fit-cover transition-transform" style="transition: 0.5s;" alt="@product.ProductName">
+                        }
+                        else
+                        {
+                            <img src="~/images/no-image.png" class="w-100 h-100 object-fit-cover" alt="No Image">
+                        }
+                        
+                        <!-- Badge nổi bật (mô phỏng) -->
+                        <span class="position-absolute top-0 end-0 badge bg-danger m-2 px-2 py-1" style="background: var(--gradient)!important; border-radius: 8px;">
+                            Hot
+                        </span>
+                    </div>
+                    
+                    <div class="card-body text-center d-flex flex-column">
+                        <h6 class="card-title text-truncate mb-2">@product.ProductName</h6>
+                        
+                        <div class="rating mb-2">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        
+                        <div class="mt-auto d-flex justify-content-between align-items-center px-1">
+                            <span class="price-tag fs-5">
+                                @if (hasDiscount)
+                                {
+                                    <span class="d-block small text-muted text-decoration-line-through">@product.Price.ToString("N0") đ</span>
+                                    <span>@effectivePrice.ToString("N0") đ</span>
+                                }
+                                else
+                                {
+                                    <span>@product.Price.ToString("N0") đ</span>
+                                }
+                            </span>
+                            <button class="btn btn-sm btn-outline-pink rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="addToCart(event, @product.ProductId)" aria-label="Thêm vào giỏ">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+    
+    <div class="text-center mt-5">
+        <a asp-controller="Products" asp-action="IndexPro" class="btn btn-pink px-5 py-2 fs-6">Xem tất cả sản phẩm</a>
+    </div>
+</div>
+
+<!-- Why Choose Us -->
+<div class="container my-5 py-5 anim-fade-up" style="animation-delay: 0.3s;">
+    <div class="text-center mb-5">
+        <h3 class="section-title section-title-center">Tại sao chọn SweetCake?</h3>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="why-card">
+                <div class="why-icon text-pink">
+                    <i class="bi bi-award"></i>
+                </div>
+                <h6>Nguyên liệu cao cấp</h6>
+                <p>100% nguyên liệu nhập khẩu và tự nhiên, không sử dụng chất bảo quản độc hại.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="why-card">
+                <div class="why-icon text-pink">
+                    <i class="bi bi-heart"></i>
+                </div>
+                <h6>Làm thủ công bằng tay</h6>
+                <p>Mỗi chiếc bánh là một tác phẩm nghệ thuật được làm bằng cả trái tim của thợ bánh.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="why-card">
+                <div class="why-icon text-pink">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <h6>Giao hàng cẩn thận</h6>
+                <p>Cam kết bánh giữ nguyên form dáng và hương vị khi đến tận tay bạn.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Banner -->
+<div class="container-fluid px-0 mt-5 anim-fade-up">
     <section class="contact-banner">
         <div class="contact-banner__overlay">
-            <h3 class="fw-bold mb-2">Liên hệ với Sweet Cake Shop</h3>
-            <p class="mb-3">Nhắn tin cho chúng tôi qua Facebook hoặc các kênh mạng xã hội khác.</p>
+            <h3 class="fw-bold mb-3">Tạo Nét Riêng Cho Chiếc Bánh Của Bạn</h3>
+            <p class="mb-4 fs-5" style="max-width: 600px;">Nhận đặt bánh theo yêu cầu cho các dịp đặc biệt: Sinh nhật, Kỷ niệm, Cưới hỏi.</p>
+            <a asp-controller="Home" asp-action="Contact" class="btn btn-light text-pink px-4 py-2 fw-bold" style="border-radius: 50px;">
+                Liên Hệ Ngay
+            </a>
         </div>
     </section>
 </div>
 
-<style>
-    .category-card {
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    }
-
-        .category-card:hover {
-            transform: translateY(-5px);
+<script>
+    // Xử lý nút add to cart trên card để không chuyển trang
+    function addToCart(e, productId) {
+        if (e && typeof e.stopPropagation === 'function') {
+            e.preventDefault();
+            e.stopPropagation();
         }
-
-    .category-overlay {
-        background: rgba(0, 0, 0, 0.4);
-        transition: background 0.3s ease;
+        addToCartAjax(productId, 1);
     }
-
-    .category-card:hover .category-overlay {
-        background: rgba(0, 0, 0, 0.6);
-    }
-
-    .featured-product-card {
-        border: none;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-        .featured-product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12) !important;
+    
+    // Hover image effect cho product card
+    document.querySelectorAll('.product-card').forEach(card => {
+        const img = card.querySelector('.object-fit-cover');
+        if(img) {
+            card.addEventListener('mouseenter', () => img.style.transform = 'scale(1.08)');
+            card.addEventListener('mouseleave', () => img.style.transform = 'scale(1)');
         }
-
-    .featured-product-image {
-        height: 180px;
-        overflow: hidden;
-    }
-
-        .featured-product-image img {
-            height: 100%;
-            object-fit: cover;
-        }
-
-    .contact-banner {
-        width: 100%;
-        min-height: 220px;
-        background: url('/images/ft1.jpg') center/cover no-repeat;
-        overflow: hidden;
-    }
-
-    .contact-banner__overlay {
-        min-height: 220px;
-        background: rgba(160, 10, 35, 0.8);
-        color: #fff;
-        text-align: center;
-        padding: 48px 16px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-</style>
+    });
+</script>

@@ -24,7 +24,15 @@
                                     <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId" class="text-decoration-none text-dark">
                                         <h6 class="mb-1 text-truncate">@item.ProductName</h6>
                                     </a>
-                                    <div class="text-muted small">@item.Price.ToString("N0") ₫ / chiếc</div>
+                                    @if (item.HasDiscount)
+                                    {
+                                        <div class="small text-muted text-decoration-line-through">@item.OriginalPrice.ToString("N0") ₫ / chiếc</div>
+                                        <div class="text-success small fw-semibold">@item.Price.ToString("N0") ₫ / chiếc</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted small">@item.Price.ToString("N0") ₫ / chiếc</div>
+                                    }
                                 </div>
 
                                 <div class="col-12 col-md-4 d-flex justify-content-between align-items-center mt-3 mt-md-0">

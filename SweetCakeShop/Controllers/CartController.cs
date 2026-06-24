@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe.Checkout;
+using SweetCakeShop.Constants;
 using SweetCakeShop.Data;
-using SweetCakeShop.Services;
+using SweetCakeShop.Helpers;
 using SweetCakeShop.Models;
 using SweetCakeShop.Models.ViewModels;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using Stripe.Checkout;
-using Stripe;
-using System.Threading.Tasks;
+using SweetCakeShop.Services;
 
 namespace SweetCakeShop.Controllers
 {
@@ -17,14 +16,24 @@ namespace SweetCakeShop.Controllers
         private readonly ApplicationDbContext _context;
         private readonly CartService _cartService;
         private readonly OrderService _orderService;
-        private readonly IPaymentService _paymentService;
+        private readonly IOrderInventoryService _inventoryService;
+        private readonly ICustomerBehaviorService _behaviorService;
+        private readonly IConfiguration _configuration;
 
-        public CartController(ApplicationDbContext context, CartService cartService, OrderService orderService, IPaymentService paymentService)
+        public CartController(
+            ApplicationDbContext context,
+            CartService cartService,
+            OrderService orderService,
+            IOrderInventoryService inventoryService,
+            ICustomerBehaviorService behaviorService,
+            IConfiguration configuration)
         {
             _context = context;
             _cartService = cartService;
-            _orderService = orderService;  
-            _paymentService = paymentService;
+            _orderService = orderService;
+            _inventoryService = inventoryService;
+            _behaviorService = behaviorService;
+            _configuration = configuration;
         }
 
         public IActionResult Index()
@@ -34,13 +43,18 @@ namespace SweetCakeShop.Controllers
         }
 
         [HttpPost]
-        public IActionResult Add(int id, int quantity = 1)
+        public async Task<IActionResult> Add(int id, int quantity = 1)
         {
             var product = _context.Products.Find(id);
             if (product == null)
                 return NotFound();
 
             _cartService.AddToCart(product, quantity);
+            await _behaviorService.TrackAddToCartAsync(
+                product.ProductId,
+                product.ProductName,
+                quantity,
+                Request.Headers.Referer.ToString());
 
             return Json(new { success = true, message = $"{product.ProductName} đã thêm vào giỏ hàng!" });
         }
@@ -66,7 +80,6 @@ namespace SweetCakeShop.Controllers
             return Json(new { count });
         }
 
-        // Show checkout with shipping form
         [HttpGet]
         public IActionResult Checkout()
         {
@@ -74,25 +87,23 @@ namespace SweetCakeShop.Controllers
             if (!cart.Items.Any())
                 return RedirectToAction("Index");
 
-            // Require login to proceed to checkout
             if (User.Identity?.IsAuthenticated != true)
             {
-                TempData["LoginMessage"] = "Bạn phải tiến hành đăng nhập để tiếp tục mua sản phẩm";
+                TempData["LoginMessage"] = "Bạn phải đăng nhập để tiếp tục mua sản phẩm";
                 var returnUrl = Url.Action("Checkout", "Cart");
                 return Redirect($"/Identity/Account/Login?returnUrl={System.Net.WebUtility.UrlEncode(returnUrl ?? "/")}");
             }
 
-            var model = new CheckoutViewModel();
-
-            // Prefill when logged in
-            model.CustomerEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-            model.CustomerName = User.Identity?.Name ?? string.Empty;
+            var model = new CheckoutViewModel
+            {
+                CustomerEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
+                CustomerName = User.Identity?.Name ?? string.Empty
+            };
 
             ViewData["Cart"] = cart;
             return View(model);
         }
 
-        // Accept checkout from guests and authenticated users
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CheckoutConfirm(CheckoutViewModel checkout)
@@ -101,19 +112,26 @@ namespace SweetCakeShop.Controllers
             if (!cart.Items.Any())
                 return RedirectToAction("Index");
 
-            string? userId = null;
-            if (User.Identity?.IsAuthenticated == true)
-                userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.Identity?.IsAuthenticated == true
+                ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+                : null;
 
-            var order = await _orderService.CreateOrderAsync(cart, checkout, userId);
+            Order order;
+            try
+            {
+                order = await _orderService.CreateOrderAsync(cart, checkout, userId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Warning"] = ex.Message;
+                return RedirectToAction("Index");
+            }
 
             _cartService.ClearCart();
 
-            // After creating order, redirect to Payment selection page
             return RedirectToAction("Payment", new { orderId = order.OrderId });
         }
 
-        // Payment selection & result page
         [HttpGet]
         public async Task<IActionResult> Payment(int orderId)
         {
@@ -124,12 +142,7 @@ namespace SweetCakeShop.Controllers
             if (order == null)
                 return NotFound();
 
-            var model = new PaymentViewModel
-            {
-                Order = order
-            };
-
-            return View(model);
+            return View(new PaymentViewModel { Order = order });
         }
 
         [HttpPost]
@@ -145,47 +158,25 @@ namespace SweetCakeShop.Controllers
 
             if (method == "COD")
             {
-                order.Status = "Confirmed"; // or "PendingPayment" as you prefer for COD
-                await _context.SaveChangesAsync();
+                var stockCheck = await _inventoryService.ConfirmAndDeductAsync(order);
+                if (!stockCheck.IsAvailable)
+                {
+                    TempData["Error"] = stockCheck.Message;
+                    return RedirectToAction("Payment", new { orderId = order.OrderId });
+                }
 
                 return RedirectToAction("Success", new { orderId = order.OrderId });
             }
-            else if (method == "Online")
+
+            if (method == "Online")
             {
-                // Build success/cancel URLs that Stripe will redirect to.
-                // Use Stripe's placeholder {CHECKOUT_SESSION_ID} so we can verify the session on return.
-                var baseSuccessUrl = Url.Action("Success", "Cart", new { orderId = order.OrderId }, Request.Scheme) ?? string.Empty;
-                var successUrl = baseSuccessUrl + (baseSuccessUrl.Contains("?") ? "&session_id={CHECKOUT_SESSION_ID}" : "?session_id={CHECKOUT_SESSION_ID}");
-                var cancelUrl = Url.Action("Payment", "Cart", new { orderId = order.OrderId }, Request.Scheme) ?? string.Empty;
-
-                // Create Stripe Checkout Session via service (provides session.Url)
-                var payment = await _paymentService.CreatePaymentAsync(order, successUrl, cancelUrl);
-
-                // Mark order awaiting online payment
-                order.Status = "AwaitingPayment";
-                await _context.SaveChangesAsync();
-
-                if (!string.IsNullOrEmpty(payment.PaymentUrl))
-                {
-                    return Redirect(payment.PaymentUrl); // send browser to Stripe Checkout
-                }
-
-                // fallback: show Payment view with bank-transfer info
-                var model = new PaymentViewModel
-                {
-                    Order = order,
-                    PaymentResult = payment
-                };
-
-                return View("Payment", model);
+                return await RedirectToSepayAsync(order);
             }
 
-            // unexpected method
             TempData["Error"] = "Phương thức thanh toán không hợp lệ.";
             return RedirectToAction("Payment", new { orderId = order.OrderId });
         }
 
-        // Internal page that displays your payment image/QR code in the middle
         [HttpGet]
         public async Task<IActionResult> OnlinePayment(int orderId)
         {
@@ -196,15 +187,38 @@ namespace SweetCakeShop.Controllers
             if (order == null)
                 return NotFound();
 
-            var model = new PaymentViewModel
-            {
-                Order = order
-            };
+            ViewBag.PaymentCode = SepayOptions.GetPaymentCode(order, _configuration);
+            ViewBag.PaymentContent = SepayOptions.GetPaymentContent(order, _configuration);
+            ViewBag.QrUrl = SepayOptions.BuildQrUrl(order, _configuration);
+            ViewBag.PaymentNotice = TempData["PaymentNotice"]?.ToString();
+            ViewBag.BankName = _configuration["SePay:BankCode"] ?? _configuration["BankTransfer:BankName"] ?? "Vietcombank";
+            ViewBag.AccountNumber = _configuration["SePay:AccountNumber"] ?? _configuration["BankTransfer:AccountNumber"] ?? "0123456789";
+            ViewBag.AccountName = _configuration["SePay:AccountName"] ?? _configuration["BankTransfer:AccountName"] ?? "SWEET CAKE SHOP";
+            ViewBag.BankBranch = _configuration["SePay:Branch"] ?? _configuration["BankTransfer:Branch"] ?? "Chi nhánh TP.HCM";
 
-            return View(model); // Views/Cart/OnlinePayment.cshtml
+            return View(new PaymentViewModel { Order = order });
         }
 
-        // User clicks "I have paid" on internal page to confirm manually
+        [HttpGet]
+        public async Task<IActionResult> PaymentStatus(int orderId)
+        {
+            var order = await _context.Orders
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            if (order == null)
+                return NotFound();
+
+            var isPaid = OrderStatuses.CountsForRevenue(order.Status);
+            return Json(new
+            {
+                orderId = order.OrderId,
+                status = order.Status,
+                isPaid,
+                redirectUrl = isPaid ? Url.Action("Success", "Cart", new { orderId = order.OrderId }) : null
+            });
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmOnlinePayment(int orderId)
@@ -213,14 +227,12 @@ namespace SweetCakeShop.Controllers
             if (order == null)
                 return NotFound();
 
-            // mark as awaiting manual confirmation (you can change to Confirmed if you prefer)
             order.Status = "AwaitingConfirmation";
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Success", new { orderId = order.OrderId });
         }
 
-        // Success: can be reached from Stripe redirect (contains session_id) or internal flows.
         [HttpGet]
         public async Task<IActionResult> Success(int orderId, string? session_id)
         {
@@ -228,7 +240,6 @@ namespace SweetCakeShop.Controllers
             if (order == null)
                 return NotFound();
 
-            // If Stripe returned a session_id, verify payment status server-side (recommended)
             if (!string.IsNullOrEmpty(session_id))
             {
                 try
@@ -238,24 +249,37 @@ namespace SweetCakeShop.Controllers
 
                     if (session != null && session.PaymentStatus == "paid")
                     {
-                        order.Status = "Confirmed";
-                        await _context.SaveChangesAsync();
+                        var stockCheck = await _inventoryService.ConfirmAndDeductAsync(order);
+                        if (!stockCheck.IsAvailable)
+                        {
+                            TempData["Error"] = stockCheck.Message;
+                        }
                     }
                     else
                     {
-                        // payment not confirmed yet — keep status or mark accordingly
                         order.Status = "PaymentFailed";
                         await _context.SaveChangesAsync();
                     }
                 }
                 catch
                 {
-                    // if verification fails, don't throw to user; keep current order status
+                    // Keep current order status when Stripe verification is unavailable.
                 }
             }
 
             ViewData["OrderId"] = orderId;
             return View();
+        }
+
+        private async Task<IActionResult> RedirectToSepayAsync(Order order)
+        {
+            order.Status = "AwaitingPayment";
+            await _context.SaveChangesAsync();
+
+            TempData["PaymentNotice"] =
+                "Quét mã VietQR để thanh toán. SePay sẽ tự động xác nhận khi giao dịch khớp số tiền và mã đơn.";
+
+            return RedirectToAction("OnlinePayment", new { orderId = order.OrderId });
         }
     }
 }

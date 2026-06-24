@@ -5,61 +5,71 @@
     var stt = 0;
 }
 
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0 text-white">Kho Nguyên liệu</h3>
+</div>
+
 <div class="container-fluid px-0">
-    <div class="row g-3">
-        <div class="col-12 col-lg-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Thêm nguyên liệu</h5>
+    <div class="row g-4">
+        <!-- Form thêm nguyên liệu -->
+        <div class="col-12 col-xl-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0 text-white font-playfair"><i class="bi bi-plus-circle me-2 text-primary"></i>Nhập mới</h5>
                 </div>
                 <div class="card-body">
                     <form asp-action="CreateIngredient" asp-controller="Admin" method="post">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
-                            <label class="form-label">Tên nguyên liệu</label>
-                            <input type="text" name="name" class="form-control" maxlength="120" required />
+                            <label class="form-label">Tên nguyên liệu <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" maxlength="120" placeholder="VD: Bột mì đa dụng" required />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Số lượng</label>
-                            <input type="number" name="quantity" class="form-control decimal-2" min="0" step="0.01" lang="en-US" required />
+                            <label class="form-label">Số lượng nhập ban đầu <span class="text-danger">*</span></label>
+                            <input type="number" name="quantity" class="form-control decimal-2" min="0" step="0.01" lang="en-US" placeholder="0.00" required />
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Đơn vị đo</label>
-                            <input type="text" name="measurement" class="form-control" maxlength="30" placeholder="g, ml, quả..." required />
+                        <div class="mb-4">
+                            <label class="form-label">Đơn vị đo lường <span class="text-danger">*</span></label>
+                            <input type="text" name="measurement" class="form-control" maxlength="30" placeholder="VD: kg, g, ml, lít, quả..." required />
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Thêm mới</button>
+                        <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-cloud-arrow-up me-2"></i>Lưu nguyên liệu</button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="col-12 col-lg-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Danh sách nguyên liệu</h5>
-                    <span class="badge text-bg-secondary">@Model.Count()</span>
+        <!-- Danh sách nguyên liệu -->
+        <div class="col-12 col-xl-9">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-white font-playfair"><i class="bi bi-boxes me-2"></i>Quản lý tồn kho</h5>
+                    <span class="badge text-bg-secondary">Tổng: @Model.Count() loại</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     @if (TempData["Success"] is string success)
                     {
-                        <div class="alert alert-success py-2">@success</div>
+                        <div class="alert alert-success d-flex align-items-center m-3 mb-0 py-2 px-3">
+                            <i class="bi bi-check-circle-fill me-2 fs-5"></i> @success
+                        </div>
                     }
                     @if (TempData["Error"] is string error)
                     {
-                        <div class="alert alert-danger py-2">@error</div>
+                        <div class="alert alert-danger d-flex align-items-center m-3 mb-0 py-2 px-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i> @error
+                        </div>
                     }
 
-                    <div class="table-responsive">
+                    <div class="table-responsive mt-3">
                         <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
-                                    <th style="width: 70px;">STT</th>
+                                    <th style="width: 60px;" class="text-center">#</th>
                                     <th>Tên nguyên liệu</th>
-                                    <th style="width: 130px;">Số lượng</th>
+                                    <th style="width: 140px;">Tồn kho</th>
                                     <th style="width: 110px;">Đơn vị</th>
-                                    <th style="width: 110px;">Thêm</th>
-                                    <th style="width: 110px;">Trừ</th>
-                                    <th class="text-end" style="width: 180px;">Thao tác</th>
+                                    <th style="width: 120px;" class="text-center">Nhập thêm</th>
+                                    <th style="width: 120px;" class="text-center">Xuất bớt</th>
+                                    <th class="text-end" style="width: 180px; padding-right: 1.5rem;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -67,35 +77,47 @@
                                 {
                                     stt++;
                                     <tr>
-                                        <td>@stt</td>
+                                        <td class="text-center text-muted">@stt</td>
                                         <td>
-                                            <input type="text" name="name" value="@item.Name" class="form-control form-control-sm" form="edit-@item.IngredientID" required />
+                                            <input type="text" name="name" value="@item.Name" class="form-control form-control-sm bg-dark text-white border-secondary" form="edit-@item.IngredientID" required />
                                         </td>
                                         <td>
-                                            <input type="number" value="@item.Quantity.ToString("0.00")" class="form-control form-control-sm" readonly />
+                                            <div class="fw-bold fs-5 text-info">@item.Quantity.ToString("0.##")</div>
                                         </td>
                                         <td>
-                                            <input type="text" name="measurement" value="@item.Measurement" class="form-control form-control-sm" form="edit-@item.IngredientID" required />
+                                            <input type="text" name="measurement" value="@item.Measurement" class="form-control form-control-sm bg-dark text-white border-secondary text-center" form="edit-@item.IngredientID" required />
                                         </td>
                                         <td>
-                                            <input type="number" name="addAmount" value="0" min="0" step="0.01" class="form-control form-control-sm decimal-2" lang="en-US" form="edit-@item.IngredientID" />
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-success border-success text-white px-2"><i class="bi bi-plus"></i></span>
+                                                <input type="number" name="addAmount" value="0" min="0" step="0.01" class="form-control form-control-sm bg-dark text-white border-secondary text-center decimal-2" lang="en-US" form="edit-@item.IngredientID" />
+                                            </div>
                                         </td>
                                         <td>
-                                            <input type="number" name="subtractAmount" value="0" min="0" step="0.01" class="form-control form-control-sm decimal-2" lang="en-US" form="edit-@item.IngredientID" />
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-danger border-danger text-white px-2"><i class="bi bi-dash"></i></span>
+                                                <input type="number" name="subtractAmount" value="0" min="0" step="0.01" class="form-control form-control-sm bg-dark text-white border-secondary text-center decimal-2" lang="en-US" form="edit-@item.IngredientID" />
+                                            </div>
                                         </td>
-                                        <td class="text-end">
-                                            <form id="edit-@item.IngredientID" asp-action="UpdateIngredient" asp-controller="Admin" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="ingredientId" value="@item.IngredientID" />
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Lưu</button>
-                                            </form>
+                                        <td class="text-end" style="padding-right: 1.5rem;">
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <form id="edit-@item.IngredientID" asp-action="UpdateIngredient" asp-controller="Admin" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="ingredientId" value="@item.IngredientID" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Lưu thay đổi">
+                                                        <i class="bi bi-save2"></i>
+                                                    </button>
+                                                </form>
 
-                                            <form asp-action="DeleteIngredient" asp-controller="Admin" method="post" class="d-inline"
-                                                  onsubmit="return confirm('Bạn có chắc muốn xóa nguyên liệu này?');">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="ingredientId" value="@item.IngredientID" />
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
-                                            </form>
+                                                <form asp-action="DeleteIngredient" asp-controller="Admin" method="post" class="d-inline"
+                                                      onsubmit="return confirm('Cảnh báo: Hành động này không thể hoàn tác. Bạn chắc chắn muốn xóa?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="ingredientId" value="@item.IngredientID" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                        <i class="bi bi-trash3"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -105,7 +127,10 @@
 
                     @if (!Model.Any())
                     {
-                        <div class="text-muted">Chưa có nguyên liệu nào.</div>
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-basket3 fs-1 d-block mb-3 opacity-50"></i>
+                            <span>Kho chưa có nguyên liệu nào.</span>
+                        </div>
                     }
                 </div>
             </div>
@@ -119,7 +144,6 @@
             const input = e.target;
             if (!input.classList.contains('decimal-2')) return;
 
-            // Cho phép xóa với di chuyển với Enter thì tự động lưu
             const allowedKeys = [
                 'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
                 'ArrowLeft', 'ArrowRight', 'Home', 'End'
@@ -127,13 +151,11 @@
 
             if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) return;
 
-            // Chặn dấu phẩy
             if (e.key === ',') {
                 e.preventDefault();
                 return;
             }
 
-            // Cho phép số 0-9
             if (/^\d$/.test(e.key)) {
                 const value = input.value;
                 const dotIndex = value.indexOf('.');
@@ -149,7 +171,6 @@
                 return;
             }
 
-            // Cho phép 1 dấu chấm duy nhất
             if (e.key === '.') {
                 if (input.value.includes('.')) {
                     e.preventDefault();
@@ -157,7 +178,6 @@
                 return;
             }
 
-            // Chặn ký tự khác
             e.preventDefault();
         });
     </script>

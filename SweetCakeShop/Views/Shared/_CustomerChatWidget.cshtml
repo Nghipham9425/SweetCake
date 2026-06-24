@@ -1,0 +1,49 @@
+<button type="button" class="ai-chat-fab" id="customerChatFab" title="Tư vấn bánh SweetCakeShop" aria-label="Mở chat tư vấn">
+    <i class="bi bi-chat-heart-fill"></i>
+</button>
+
+<div class="ai-chat-panel" id="customerChatPanel"
+     data-product-id="@(ViewBag.ChatProductId as int?)">
+    <div class="ai-chat-header d-flex justify-content-between align-items-center" id="customerChatHeader" title="Kéo để di chuyển khung chat">
+        <div>
+            <div class="fw-semibold">SweetCakeShop 🍰</div>
+            <small class="opacity-75">Tư vấn dễ thương · Gemini AI</small>
+        </div>
+        <button type="button" class="btn-close btn-close-white btn-sm" id="customerChatClose" aria-label="Đóng chat"></button>
+    </div>
+    <div class="ai-chat-messages" id="customerChatMessages">
+        <div class="ai-msg bot">
+            <div class="small text-muted mb-1">Trợ lý</div>
+            <div class="bubble">Chào bạn! Mình là trợ lý ảo dễ thương của SweetCakeShop. Bạn cần mình tư vấn chọn bánh gì hôm nay? 💖</div>
+        </div>
+    </div>
+    <div class="ai-chat-quick-replies" id="customerChatQuickReplies"></div>
+    <div class="ai-chat-input-area">
+        <input type="text" id="customerChatInput" class="form-control form-control-sm rounded-pill flex-grow-1" maxlength="2000"
+               placeholder="Gõ tin nhắn ở đây nha..." autocomplete="off" />
+        <button type="button" class="btn btn-sm rounded-pill shadow-sm" id="customerChatSend" aria-label="Gửi tin nhắn">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </div>
+</div>
+
+<link rel="stylesheet" href="~/css/chatbox.css" asp-append-version="true" />
+<script src="~/js/ai-chat.js" asp-append-version="true"></script>
+<script>
+    SweetCakeAiChat({
+        fabId: 'customerChatFab',
+        panelId: 'customerChatPanel',
+        headerId: 'customerChatHeader',
+        closeId: 'customerChatClose',
+        inputId: 'customerChatInput',
+        sendId: 'customerChatSend',
+        messagesId: 'customerChatMessages',
+        quickRepliesId: 'customerChatQuickReplies',
+        historyUrl: '/api/Chat/GetChatHistory',
+        sendUrl: '/api/Chat/SendMessage',
+        suggestionsUrl: '/api/Chat/customer/suggestions',
+        defaultQuickReplies: ['Banh ban chay?', 'Giao hang?', 'Chat CSKH'],
+        draggable: true,
+        onCartAction: typeof updateCartBadge === 'function' ? updateCartBadge : null
+    });
+</script>

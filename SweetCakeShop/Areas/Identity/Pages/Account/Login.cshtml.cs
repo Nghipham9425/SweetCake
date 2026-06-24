@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using SweetCakeShop.Constants;
+using SweetCakeShop.Services.Chat;
 
 namespace SweetCakeShop.Areas.Identity.Pages.Account
 {
@@ -103,7 +105,9 @@ namespace SweetCakeShop.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(
+            string returnUrl = null,
+            [FromServices] IChatTokenMergeService? chatMerge = null)
         {
             returnUrl ??= Url.Content("~/");
 
@@ -130,10 +134,20 @@ namespace SweetCakeShop.Areas.Identity.Pages.Account
                             ExpiresUtc = Input.RememberMe ? DateTimeOffset.UtcNow.AddYears(100) : (DateTimeOffset?)null
                         };
                         await _signInManager.SignInAsync(user, authProps);
+
+                        if (chatMerge != null)
+                            await chatMerge.MergeOnLoginAsync(user.Id);
                     }
 
                     // THÊM DÒNG NÀY ĐỂ KÍCH HOẠT THÔNG BÁO
                     TempData["LoginSuccess"] = "True";
+
+                    if (user != null
+                        && await _userManager.IsInRoleAsync(user, nameof(Roles.Shipper))
+                        && string.Equals(returnUrl, Url.Content("~/"), StringComparison.Ordinal))
+                    {
+                        return LocalRedirect(Url.Content("~/Shipper/Orders"));
+                    }
 
                     return LocalRedirect(returnUrl);
                 }

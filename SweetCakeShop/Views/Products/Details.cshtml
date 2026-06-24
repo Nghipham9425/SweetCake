@@ -1,7 +1,11 @@
+@using SweetCakeShop.Helpers
 @model SweetCakeShop.Models.ViewModels.ProductDetailsViewModel
 
 @{
     ViewData["Title"] = Model.Product.ProductName;
+    ViewBag.ChatProductId = Model.Product.ProductId;
+    var effectivePrice = ProductPricingHelper.GetEffectivePrice(Model.Product);
+    var hasDiscount = ProductPricingHelper.HasActiveDiscount(Model.Product);
 }
 
 <div class="container-fluid px-lg-5 mt-4">
@@ -34,7 +38,15 @@
             </p>
 
             <div class="mb-4">
-                <span class="text-success fw-bold fs-3">@Model.Product.Price.ToString("N0") đ</span>
+                @if (hasDiscount)
+                {
+                    <div class="text-muted text-decoration-line-through">@Model.Product.Price.ToString("N0") đ</div>
+                    <span class="text-success fw-bold fs-3">@effectivePrice.ToString("N0") đ</span>
+                }
+                else
+                {
+                    <span class="text-success fw-bold fs-3">@Model.Product.Price.ToString("N0") đ</span>
+                }
             </div>
 
             <div class="d-flex align-items-center mb-4">
@@ -46,7 +58,6 @@
                 <button class="btn btn-pink px-4 py-2" onclick="addToCartFromDetails(@Model.Product.ProductId)">
                     Thêm vào giỏ hàng
                 </button>
-            
             </div>
         </div>
     </div>
@@ -58,6 +69,9 @@
         <div class="row g-4">
             @foreach (var product in Model.SimilarProducts)
             {
+                var similarEffectivePrice = ProductPricingHelper.GetEffectivePrice(product);
+                var similarHasDiscount = ProductPricingHelper.HasActiveDiscount(product);
+
                 <div class="col-lg-2 col-md-3 col-sm-4 col-6">
                     <a class="text-decoration-none text-dark" asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId">
                         <div class="card h-100 shadow-sm product-card">
@@ -73,7 +87,15 @@
                             </div>
                             <div class="card-body text-center">
                                 <h6 class="card-title text-truncate mb-2">@product.ProductName</h6>
-                                <p class="mb-0 text-success fw-bold">@product.Price.ToString("N0") đ</p>
+                                @if (similarHasDiscount)
+                                {
+                                    <div class="small text-muted text-decoration-line-through">@product.Price.ToString("N0") đ</div>
+                                    <p class="mb-0 text-success fw-bold">@similarEffectivePrice.ToString("N0") đ</p>
+                                }
+                                else
+                                {
+                                    <p class="mb-0 text-success fw-bold">@product.Price.ToString("N0") đ</p>
+                                }
                             </div>
                         </div>
                     </a>

@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model LoginModel
 
 @{
@@ -30,7 +30,12 @@
 
                         <div class="form-group mb-3">
                             <label asp-for="Input.Password" class="form-label fw-bold" style="color: #444;">Mật khẩu *</label>
-                            <input asp-for="Input.Password" class="form-control p-3" style="border-radius: 12px; border: 1px solid #ddd;" placeholder="Nhập mật khẩu" />
+                            <div class="password-toggle-wrap">
+                                <input asp-for="Input.Password" class="form-control p-3" style="border-radius: 12px; border: 1px solid #ddd;" placeholder="Nhập mật khẩu" autocomplete="current-password" />
+                                <button type="button" class="password-toggle-btn" aria-label="Hiện mật khẩu">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <span asp-validation-for="Input.Password" class="text-danger small"></span>
                         </div>
 
@@ -67,4 +72,17 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll('.password-toggle-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var input = btn.closest('.password-toggle-wrap').querySelector('input');
+                var icon = btn.querySelector('i');
+                var show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                icon.classList.toggle('bi-eye', !show);
+                icon.classList.toggle('bi-eye-slash', show);
+                btn.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+            });
+        });
+    </script>
 }

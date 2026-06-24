@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;  // hoặc System.Text.Json
+using SweetCakeShop.Helpers;
 using SweetCakeShop.Models;
 using SweetCakeShop.Models.ViewModels;
 
@@ -36,11 +37,15 @@ namespace SweetCakeShop.Services
         public void AddToCart(Product product, int quantity = 1)
         {
             var cart = GetCart();
+            var effectivePrice = ProductPricingHelper.GetEffectivePrice(product);
 
             var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == product.ProductId);
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
+                existingItem.Price = effectivePrice;
+                existingItem.OriginalPrice = product.Price;
+                existingItem.CostPrice = product.CostPrice;
             }
             else
             {
@@ -48,7 +53,9 @@ namespace SweetCakeShop.Services
                 {
                     ProductId = product.ProductId,
                     ProductName = product.ProductName,
-                    Price = product.Price,
+                    Price = effectivePrice,
+                    OriginalPrice = product.Price,
+                    CostPrice = product.CostPrice,
                     Image = product.Image,
                     Quantity = quantity
                 });

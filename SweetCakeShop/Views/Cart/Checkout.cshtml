@@ -9,6 +9,16 @@
 <div class="container my-5">
     <h2 class="mb-4">Xác nhận đơn hàng</h2>
 
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-warning">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+
     <div class="row">
         <div class="col-md-6">
             <h5>Thông tin giao hàng</h5>

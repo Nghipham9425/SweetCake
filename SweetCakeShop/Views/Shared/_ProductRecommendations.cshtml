@@ -1,0 +1,51 @@
+@using SweetCakeShop.Helpers
+@model IReadOnlyList<SweetCakeShop.Models.ViewModels.ProductRecommendationViewModel>
+
+@if (Model != null && Model.Any())
+{
+    <div class="row g-3">
+        @foreach (var item in Model)
+        {
+            var product = item.Product;
+            var effectivePrice = ProductPricingHelper.GetEffectivePrice(product);
+            var hasDiscount = ProductPricingHelper.HasActiveDiscount(product);
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="card h-100 shadow-sm product-card">
+                    <a class="text-decoration-none text-dark" asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId">
+                        <div class="product-image-wrapper" style="height: 180px; overflow: hidden;">
+                            @if (!string.IsNullOrEmpty(product.Image))
+                            {
+                                <img src="@product.Image" class="card-img-top" alt="@product.ProductName" style="height: 100%; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <img src="~/images/no-image.png" class="card-img-top" alt="No Image" style="height: 100%; object-fit: cover;">
+                            }
+                        </div>
+                    </a>
+                    <div class="card-body d-flex flex-column text-center">
+                        <a class="text-decoration-none text-dark" asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId">
+                            <h6 class="card-title text-truncate mb-2">@product.ProductName</h6>
+                        </a>
+
+                        @if (hasDiscount)
+                        {
+                            <div class="small text-muted text-decoration-line-through">@product.Price.ToString("N0") VND</div>
+                            <div class="text-success fw-bold">@effectivePrice.ToString("N0") VND</div>
+                        }
+                        else
+                        {
+                            <div class="text-success fw-bold">@product.Price.ToString("N0") VND</div>
+                        }
+
+                        <div class="small text-muted mt-2 mb-2">@item.Reason</div>
+                        <button type="button" class="btn btn-sm btn-pink mt-auto" onclick="addToCartAjax(@product.ProductId, 1)">
+                            Thêm vào giỏ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

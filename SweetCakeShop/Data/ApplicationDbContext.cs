@@ -26,11 +26,18 @@ namespace SweetCakeShop.Data
         {
             base.OnModelCreating(builder);
 
-            // config relationship nếu cần
+            // Order.User is optional because guest checkout has no AspNetUsers row.
             builder.Entity<Order>()
                 .HasOne(o => o.User)
                 .WithMany()
-                .HasForeignKey(o => o.UserId);
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+            builder.Entity<Order>()
+                .Property(o => o.UserId)
+                .HasMaxLength(450)
+                .IsRequired(false);
 
             // set precision / column types to avoid silent truncation
             builder.Entity<Product>()

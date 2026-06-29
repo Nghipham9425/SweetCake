@@ -6,8 +6,8 @@ namespace SweetCakeShop.Models
         public int OrderId { get; set; }
 
         // If the order was placed by an authenticated user, this will be populated.
-        // For guest checkout this stays empty.
-        public string UserId { get; set; } = string.Empty;
+        // For guest checkout this stays null.
+        public string? UserId { get; set; }
 
         // Shipping / customer fields (for guest checkout and for records)
         public string CustomerName { get; set; } = string.Empty;

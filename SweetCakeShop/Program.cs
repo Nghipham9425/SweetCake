@@ -55,6 +55,7 @@ namespace SweetCakeShop
             builder.Services.AddScoped<CartService>();
             builder.Services.AddScoped<IOrderInventoryService, OrderInventoryService>();
             builder.Services.AddScoped<ICustomerBehaviorService, CustomerBehaviorService>();
+            builder.Services.AddScoped<IProductRecommendationService, ProductRecommendationService>();
             builder.Services.AddScoped<OrderService>();
             builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
             builder.Services.AddScoped<IRevenueService, RevenueService>();

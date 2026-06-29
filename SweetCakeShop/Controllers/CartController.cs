@@ -18,6 +18,7 @@ namespace SweetCakeShop.Controllers
         private readonly OrderService _orderService;
         private readonly IOrderInventoryService _inventoryService;
         private readonly ICustomerBehaviorService _behaviorService;
+        private readonly IProductRecommendationService _recommendationService;
         private readonly IConfiguration _configuration;
 
         public CartController(
@@ -26,6 +27,7 @@ namespace SweetCakeShop.Controllers
             OrderService orderService,
             IOrderInventoryService inventoryService,
             ICustomerBehaviorService behaviorService,
+            IProductRecommendationService recommendationService,
             IConfiguration configuration)
         {
             _context = context;
@@ -33,12 +35,14 @@ namespace SweetCakeShop.Controllers
             _orderService = orderService;
             _inventoryService = inventoryService;
             _behaviorService = behaviorService;
+            _recommendationService = recommendationService;
             _configuration = configuration;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var cart = _cartService.GetCart();
+            cart.Recommendations = await _recommendationService.GetForCartAsync(cart.Items.Select(i => i.ProductId));
             return View(cart);
         }
 
@@ -87,17 +91,14 @@ namespace SweetCakeShop.Controllers
             if (!cart.Items.Any())
                 return RedirectToAction("Index");
 
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                TempData["LoginMessage"] = "Bạn phải đăng nhập để tiếp tục mua sản phẩm";
-                var returnUrl = Url.Action("Checkout", "Cart");
-                return Redirect($"/Identity/Account/Login?returnUrl={System.Net.WebUtility.UrlEncode(returnUrl ?? "/")}");
-            }
-
             var model = new CheckoutViewModel
             {
-                CustomerEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
-                CustomerName = User.Identity?.Name ?? string.Empty
+                CustomerEmail = User.Identity?.IsAuthenticated == true
+                    ? User.FindFirstValue(ClaimTypes.Email) ?? string.Empty
+                    : string.Empty,
+                CustomerName = User.Identity?.IsAuthenticated == true
+                    ? User.Identity?.Name ?? string.Empty
+                    : string.Empty
             };
 
             ViewData["Cart"] = cart;
@@ -123,8 +124,9 @@ namespace SweetCakeShop.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                TempData["Warning"] = ex.Message;
-                return RedirectToAction("Index");
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewData["Cart"] = cart;
+                return View("Checkout", checkout);
             }
 
             _cartService.ClearCart();

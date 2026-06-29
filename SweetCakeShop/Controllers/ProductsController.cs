@@ -14,13 +14,16 @@ namespace SweetCakeShop.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ICustomerBehaviorService _behaviorService;
+        private readonly IProductRecommendationService _recommendationService;
 
         public ProductsController(
             ApplicationDbContext context,
-            ICustomerBehaviorService behaviorService)
+            ICustomerBehaviorService behaviorService,
+            IProductRecommendationService recommendationService)
         {
             _context = context;
             _behaviorService = behaviorService;
+            _recommendationService = recommendationService;
         }
 
         // GET: Products
@@ -151,7 +154,8 @@ namespace SweetCakeShop.Controllers
             var model = new ProductDetailsViewModel
             {
                 Product = product,
-                SimilarProducts = similarProducts
+                SimilarProducts = similarProducts,
+                Recommendations = await _recommendationService.GetForProductAsync(product.ProductId)
             };
 
             return View(model);

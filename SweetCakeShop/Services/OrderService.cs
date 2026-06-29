@@ -27,12 +27,12 @@ namespace SweetCakeShop.Services
 
             var order = new Order
             {
-                UserId = userId ?? string.Empty,
+                UserId = string.IsNullOrWhiteSpace(userId) ? null : userId,
                 CustomerName = checkout.CustomerName ?? string.Empty,
                 CustomerEmail = checkout.CustomerEmail ?? string.Empty,
                 CustomerPhone = checkout.CustomerPhone ?? string.Empty,
                 ShippingAddress = checkout.ShippingAddress ?? string.Empty,
-                IsGuest = string.IsNullOrEmpty(userId),
+                IsGuest = string.IsNullOrWhiteSpace(userId),
                 OrderDate = DateTime.UtcNow,
                 TotalPrice = cart.TotalAmount,
                 Status = "Pending"

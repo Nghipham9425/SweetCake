@@ -6,5 +6,6 @@ namespace SweetCakeShop.Models.ViewModels
     {
         public Product Product { get; set; } = null!;
         public List<Product> SimilarProducts { get; set; } = new();
+        public List<ProductRecommendationViewModel> Recommendations { get; set; } = new();
     }
 }

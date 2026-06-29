@@ -62,6 +62,14 @@
         </div>
     </div>
 
+@if (Model.Recommendations.Any())
+{
+    <div class="container-fluid px-lg-5 mt-5 mb-4">
+        <h4 class="fw-bold mb-3 text-center">Thường mua kèm</h4>
+        <partial name="_ProductRecommendations" model="Model.Recommendations" />
+    </div>
+}
+
 @if (Model.SimilarProducts.Any())
 {
     <div class="container-fluid px-lg-5 mt-5 mb-4">

@@ -6,6 +6,15 @@
 }
 
 <div class="container my-5">
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+    @if (TempData["Warning"] is string warning)
+    {
+        <div class="alert alert-warning">@warning</div>
+    }
+
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">

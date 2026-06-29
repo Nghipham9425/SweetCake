@@ -7,6 +7,15 @@
 <div class="container my-5">
     <h2 class="text-center mb-4">Giỏ hàng của bạn</h2>
 
+    @if (TempData["Warning"] is string warning)
+    {
+        <div class="alert alert-warning">@warning</div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
     @if (Model.Items.Any())
     {
         <div class="row g-4">
@@ -91,6 +100,14 @@
                 </div>
             </div>
         </div>
+
+        @if (Model.Recommendations.Any())
+        {
+            <div class="mt-5">
+                <h4 class="fw-bold mb-3 text-center">Gợi ý mua kèm</h4>
+                <partial name="_ProductRecommendations" model="Model.Recommendations" />
+            </div>
+        }
     }
     else
     {
